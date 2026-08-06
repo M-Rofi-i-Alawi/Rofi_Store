@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { menuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
 import { useFocusMode } from '../context/FocusModeContext';
+import { supabase } from '../lib/supabase';
 import FAQSection from '../components/FAQSection';
 import ContactSection from '../components/ContactSection';
 import MediaSosialSection from '../components/MediaSosialSection';
@@ -18,47 +19,68 @@ export default function DapurRofi() {
     };
   }, [isFokus]);
 
-  // Live session deductions state (Updates stock count immediately when customer orders)
-  const [sessionDeductions, setSessionDeductions] = useState(() => {
-    const saved = localStorage.getItem('rofi_session_deductions_v3');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return {};
-      }
-    }
-    return {};
+  // Real-time Supabase stock state (Maps product_id -> quantity)
+  const [dbStocks, setDbStocks] = useState({
+    1: 4,  // Default fallback Mini
+    2: 11  // Default fallback Medium
   });
 
-  // Reset session deductions when base stock values change (e.g., after you edit menuData.js)
+  // Fetch initial stock from Supabase & subscribe to real-time changes across all devices
   useEffect(() => {
-    // Compare current deductions with new base stock; if any deduction exceeds new stock, clear all deductions
-    const needsReset = Object.entries(sessionDeductions).some(([id, deducted]) => {
-      const item = menuItems.find(m => m.id === Number(id));
-      return item && deducted > item.stock;
-    });
-    if (needsReset) {
-      setSessionDeductions({});
-      localStorage.removeItem('rofi_session_deductions_v3');
-    }
-  }, [menuItems]);
+    const fetchStock = async () => {
+      try {
+        const { data, error } = await supabase.from('stock').select('*');
+        if (data && data.length > 0) {
+          const map = {};
+          data.forEach(row => {
+            map[row.product_id] = row.quantity;
+          });
+          setDbStocks(prev => ({ ...prev, ...map }));
+        }
+      } catch (err) {
+        console.warn('Supabase stock table fetch notice:', err);
+      }
+    };
 
-  // Admin reset button (visible with ?admin=true)
+    fetchStock();
+
+    // Subscribe to Postgres changes for Realtime cross-device sync
+    const channel = supabase
+      .channel('public:stock')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock' }, (payload) => {
+        if (payload.new && payload.new.product_id !== undefined) {
+          setDbStocks(prev => ({
+            ...prev,
+            [payload.new.product_id]: payload.new.quantity
+          }));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Admin reset button (visible dengan ?admin=true di URL)
   const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
 
-  const handleAdminReset = () => {
-    if (confirm('Reset semua deduksi stok sesi?')) {
-      setSessionDeductions({});
-      localStorage.removeItem('rofi_session_deductions_v3');
-      triggerToast('Stok sesi berhasil direset');
+  const handleAdminReset = async () => {
+    if (confirm('Reset stok di database Supabase ke nilai awal (Mini: 4, Medium: 11)?')) {
+      try {
+        await supabase.from('stock').update({ quantity: 4 }).eq('product_id', 1);
+        await supabase.from('stock').update({ quantity: 11 }).eq('product_id', 2);
+        setDbStocks({ 1: 4, 2: 11 });
+        alert('Stok di Supabase berhasil di-reset!');
+      } catch (e) {
+        alert('Gagal reset stok di Supabase: ' + e.message);
+      }
     }
   };
 
-  // Helper: Live stock = base menuData.js stock minus completed session orders
+  // Helper: Live stock dari database Supabase
   const getItemStock = (item) => {
-    const deducted = sessionDeductions[item.id] || 0;
-    return Math.max(0, item.stock - deducted);
+    return dbStocks[item.id] !== undefined ? dbStocks[item.id] : item.stock;
   };
 
   const [cart, setCart] = useState([]);
@@ -150,13 +172,23 @@ export default function DapurRofi() {
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
-    // Deduct stock instantly upon order checkout
-    setSessionDeductions(prev => {
-      const next = { ...prev };
-      cart.forEach(item => {
-        next[item.id] = (next[item.id] || 0) + item.qty;
-      });
-      return next;
+    // Deduct stock in Supabase database & local state instantly
+    cart.forEach(async (item) => {
+      const currentQty = getItemStock(item);
+      const newQty = Math.max(0, currentQty - item.qty);
+
+      // Local state update for instant UI feedback
+      setDbStocks(prev => ({ ...prev, [item.id]: newQty }));
+
+      // Supabase database update
+      try {
+        await supabase
+          .from('stock')
+          .update({ quantity: newQty })
+          .eq('product_id', item.id);
+      } catch (err) {
+        console.error('Gagal memperbarui stok di Supabase:', err);
+      }
     });
 
     setCart([]);
@@ -231,6 +263,20 @@ export default function DapurRofi() {
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
               Pilih porsi favorit Anda! Tersedia varian Mini (3K) &amp; Medium (6K) siap antar di Smakzie LB.
             </p>
+
+            {isAdmin && (
+              <div style={{ margin: '1.5rem auto 0', padding: '1rem', background: '#FFF3CD', border: '1px solid #FFEBAA', borderRadius: '16px', textAlign: 'center', maxWidth: '500px' }}>
+                <p style={{ fontWeight: 'bold', color: '#856404', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                  ⚙️ Admin Mode (Database Supabase Active)
+                </p>
+                <button
+                  onClick={handleAdminReset}
+                  style={{ padding: '8px 16px', background: '#DC3545', color: '#FFF', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+                >
+                  Reset Stok Database ke Initial (Mini: 4, Medium: 11)
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Product Grid (2 Variants: Mini 3K & Medium 6K) */}
