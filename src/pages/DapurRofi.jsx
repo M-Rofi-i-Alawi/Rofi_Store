@@ -6,6 +6,9 @@ import ContactSection from '../components/ContactSection';
 import MediaSosialSection from '../components/MediaSosialSection';
 import CtaSection from '../components/CtaSection';
 
+// Global Cloud Real-Time Database Endpoint
+const GLOBAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fd74aee9902e1';
+
 export default function DapurRofi() {
   const { isFokus } = useFocusMode();
 
@@ -21,24 +24,67 @@ export default function DapurRofi() {
     };
   }, [isFokus]);
 
-  // Stock Deductions State (Tracks items bought by customers)
+  // Global Stock Deductions State (Real-time Cloud Synchronized)
   const [deductions, setDeductions] = useState(() => {
-    const saved = localStorage.getItem('rofi_stock_deductions_v2');
+    const saved = localStorage.getItem('rofi_stock_deductions_cloud_v1');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return {};
+        return { 1: 0, 2: 0 };
       }
     }
-    return {};
+    return { 1: 0, 2: 0 };
   });
 
+  // Fetch real-time deductions from Cloud DB every 5 seconds
   useEffect(() => {
-    localStorage.setItem('rofi_stock_deductions_v2', JSON.stringify(deductions));
-  }, [deductions]);
+    let isMounted = true;
 
-  // Helper to calculate live remaining stock: menuData.js stock minus customer purchases
+    const fetchCloudDeductions = async () => {
+      try {
+        const res = await fetch(GLOBAL_CLOUD_DB_URL);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.data && isMounted) {
+            setDeductions(json.data);
+            localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(json.data));
+          }
+        }
+      } catch (err) {
+        console.warn('Realtime cloud sync error:', err);
+      }
+    };
+
+    fetchCloudDeductions();
+    const interval = setInterval(fetchCloudDeductions, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Helper to sync deductions to cloud DB
+  const syncDeductionsToCloud = async (newDeductions) => {
+    setDeductions(newDeductions);
+    localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(newDeductions));
+
+    try {
+      await fetch(GLOBAL_CLOUD_DB_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Dapur Rofi Stock Deductions',
+          data: newDeductions
+        })
+      });
+    } catch (err) {
+      console.error('Failed to push stock update to cloud:', err);
+    }
+  };
+
+  // Helper to calculate live remaining stock: menuData.js stock minus cloud deductions
   const getLiveStock = (item) => {
     const deduct = deductions[item.id] || 0;
     return Math.max(0, item.stock - deduct);
@@ -66,11 +112,12 @@ export default function DapurRofi() {
       const newStockVal = parseInt(input, 10);
       if (!isNaN(newStockVal) && newStockVal >= 0) {
         const newDeduct = Math.max(0, item.stock - newStockVal);
-        setDeductions(prev => ({
-          ...prev,
+        const updatedDeductions = {
+          ...deductions,
           [item.id]: newDeduct
-        }));
-        triggerToast(`Stok ${item.name} berhasil diperbarui menjadi ${newStockVal} Pcs!`);
+        };
+        syncDeductionsToCloud(updatedDeductions);
+        triggerToast(`Stok ${item.name} berhasil diperbarui di Cloud menjadi ${newStockVal} Pcs!`);
       } else {
         alert('Mohon masukkan angka stok yang valid!');
       }
@@ -152,19 +199,18 @@ export default function DapurRofi() {
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
-    // Deduct stock dynamically upon order checkout
-    setDeductions(prev => {
-      const next = { ...prev };
-      cart.forEach(item => {
-        const curDeduct = next[item.id] || 0;
-        next[item.id] = curDeduct + item.qty;
-      });
-      return next;
+    // Deduct stock real-time globally on Cloud DB
+    const updatedDeductions = { ...deductions };
+    cart.forEach(item => {
+      const curDeduct = updatedDeductions[item.id] || 0;
+      updatedDeductions[item.id] = curDeduct + item.qty;
     });
+
+    syncDeductionsToCloud(updatedDeductions);
 
     setCart([]);
     setShowCart(false);
-    triggerToast('Pesanan terkirim via WhatsApp! Stok produk telah berkurang.');
+    triggerToast('Pesanan terkirim via WhatsApp! Stok produk telah berkurang secara Real-Time!');
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
