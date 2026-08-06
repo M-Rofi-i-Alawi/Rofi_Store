@@ -9,9 +9,6 @@ import CtaSection from '../components/CtaSection';
 export default function DapurRofi() {
   const { isFokus } = useFocusMode();
 
-  // Secret Admin mode flag (Only active if URL has ?admin=true)
-  const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
-
   useEffect(() => {
     if (isFokus) {
       document.title = 'Dapur Rofi | Dessert Ubi Ungu';
@@ -20,84 +17,6 @@ export default function DapurRofi() {
       document.title = 'Rofi Store | Kuliner & Desain Grafis';
     };
   }, [isFokus]);
-
-  // Global Stock Deductions State (Real-time Cloud Synchronized)
-  const [deductions, setDeductions] = useState(() => {
-    const saved = localStorage.getItem('rofi_stock_deductions_cloud_v1');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return { 1: 0, 2: 0 };
-      }
-    }
-    return { 1: 0, 2: 0 };
-  });
-
-  // Fetch real-time deductions from Vercel / Cloud API every 3 seconds
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchCloudDeductions = async () => {
-      try {
-        const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        const url = isLocal
-          ? 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fd74aee9902e1'
-          : '/api/stock';
-
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          const data = json.deductions || json.data;
-          if (data && isMounted) {
-            setDeductions(data);
-            localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(data));
-          }
-        }
-      } catch (err) {
-        console.warn('Realtime cloud sync error:', err);
-      }
-    };
-
-    fetchCloudDeductions();
-    const interval = setInterval(fetchCloudDeductions, 3000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Helper to sync deductions to cloud DB
-  const syncDeductionsToCloud = async (newDeductions) => {
-    setDeductions(newDeductions);
-    localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(newDeductions));
-
-    try {
-      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      const url = isLocal
-        ? 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fd74aee9902e1'
-        : '/api/stock';
-
-      const payload = isLocal
-        ? { name: 'Dapur Rofi Stock Deductions', data: newDeductions }
-        : { deductions: newDeductions };
-
-      await fetch(url, {
-        method: isLocal ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    } catch (err) {
-      console.error('Failed to push stock update to cloud:', err);
-    }
-  };
-
-  // Helper to calculate live remaining stock: menuData.js stock minus cloud deductions
-  const getLiveStock = (item) => {
-    const deduct = deductions[item.id] || 0;
-    return Math.max(0, item.stock - deduct);
-  };
 
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
@@ -113,35 +32,14 @@ export default function DapurRofi() {
     setTimeout(() => setToast({ show: false, message: '' }), 3500);
   };
 
-  // Admin Stock Manager Function (Only accessible in Admin mode)
-  const handleRestockAdmin = (item) => {
-    const current = getLiveStock(item);
-    const input = prompt(`[Admin Dapur Rofi]\n\nMasukkan jumlah sisa stok aktual saat ini untuk ${item.name}:`, current.toString());
-    if (input !== null) {
-      const newStockVal = parseInt(input, 10);
-      if (!isNaN(newStockVal) && newStockVal >= 0) {
-        const newDeduct = item.stock - newStockVal;
-        const updatedDeductions = {
-          ...deductions,
-          [item.id]: newDeduct
-        };
-        syncDeductionsToCloud(updatedDeductions);
-        triggerToast(`Stok ${item.name} berhasil diperbarui di Cloud menjadi ${newStockVal} Pcs!`);
-      } else {
-        alert('Mohon masukkan angka stok yang valid!');
-      }
-    }
-  };
-
   const addToCart = (item) => {
-    const currentStock = getLiveStock(item);
-    if (currentStock <= 0) {
+    if (item.stock <= 0) {
       return alert(`Maaf, stok ${item.name} saat ini sudah habis (Sold Out)!`);
     }
 
     const currentQtyInCart = cart.find(c => c.id === item.id)?.qty || 0;
-    if (currentQtyInCart + 1 > currentStock) {
-      return alert(`Maaf, stok ${item.name} hanya tersisa ${currentStock} Pcs!`);
+    if (currentQtyInCart + 1 > item.stock) {
+      return alert(`Maaf, stok ${item.name} hanya tersisa ${item.stock} Pcs!`);
     }
 
     setCart(prev => {
@@ -160,7 +58,7 @@ export default function DapurRofi() {
       const existing = prev.find(c => c.id === id);
       if (!existing) return prev;
 
-      const currentStock = item ? getLiveStock(item) : 0;
+      const currentStock = item ? item.stock : 0;
       const newQty = existing.qty + change;
       if (newQty > currentStock) {
         alert(`Maaf, stok hanya tersisa ${currentStock} Pcs!`);
@@ -175,16 +73,15 @@ export default function DapurRofi() {
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const processCheckout = async () => {
+  const processCheckout = () => {
     if (cart.length === 0) return alert('Keranjang pesanan masih kosong!');
     if (!custName.trim()) return alert('Mohon isi Nama Pemesan terlebih dahulu!');
     if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
 
     // Check stock for each item in cart
     for (const item of cart) {
-      const available = getLiveStock(item);
-      if (item.qty > available) {
-        return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${available} Pcs.`);
+      if (item.qty > item.stock) {
+        return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${item.stock} Pcs.`);
       }
     }
 
@@ -208,19 +105,9 @@ export default function DapurRofi() {
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
-    // Deduct stock real-time globally on Cloud DB
-    const updatedDeductions = { ...deductions };
-    cart.forEach(item => {
-      const curDeduct = updatedDeductions[item.id] || 0;
-      updatedDeductions[item.id] = curDeduct + item.qty;
-    });
-
-    // Await cloud sync so mobile browsers finish sending the network payload!
-    await syncDeductionsToCloud(updatedDeductions);
-
     setCart([]);
     setShowCart(false);
-    triggerToast('Pesanan terkirim via WhatsApp! Stok produk telah berkurang secara Real-Time!');
+    triggerToast('Pesanan terkirim via WhatsApp!');
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -294,84 +181,60 @@ export default function DapurRofi() {
 
           {/* Product Grid (2 Variants: Mini 3K & Medium 6K) */}
           <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-            {menuItems.map((item) => {
-              const currentStock = getLiveStock(item);
+            {menuItems.map((item) => (
+              <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'relative', height: '240px' }}>
+                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
+                    {item.badge}
+                  </span>
+                  <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="fas fa-star"></i> {item.rating}
+                  </span>
+                </div>
 
-              return (
-                <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', height: '240px' }}>
-                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
-                      {item.badge}
-                    </span>
-                    <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <i className="fas fa-star"></i> {item.rating}
-                    </span>
-                  </div>
-
-                  <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
-                        {item.name}
-                      </h3>
-                      <div>
-                        <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
-                          Rp {item.price.toLocaleString('id-ID')}
-                        </span>
-                        {item.oldPrice && (
-                          <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                            Rp {item.oldPrice.toLocaleString('id-ID')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.25rem', flexGrow: 1 }}>
-                      {item.desc}
-                    </p>
-
-                    {/* Stock info badge (Read-only for customers) */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '900', color: currentStock > 0 ? 'var(--dr-primary)' : '#EF4444' }}>
-                          {currentStock > 0 ? `${currentStock} Pcs` : 'Habis (Sold Out)'}
-                        </span>
-                      </div>
-
-                      {/* Secret Admin Button ONLY visible if ?admin=true is in URL */}
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleRestockAdmin(item)}
-                          title="Klik untuk mengisi ulang stok porsi (Khusus Pemilik)"
-                          style={{
-                            background: 'rgba(230, 74, 25, 0.12)',
-                            border: 'none',
-                            color: 'var(--dr-primary)',
-                            borderRadius: '8px',
-                            padding: '4px 8px',
-                            fontSize: '0.75rem',
-                            fontWeight: '800',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          ✏️ Restok (Admin)
-                        </button>
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
+                      {item.name}
+                    </h3>
+                    <div>
+                      <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
+                        Rp {item.price.toLocaleString('id-ID')}
+                      </span>
+                      {item.oldPrice && (
+                        <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                          Rp {item.oldPrice.toLocaleString('id-ID')}
+                        </div>
                       )}
                     </div>
-
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="btn-hero-primary btn-hero-dapur"
-                      disabled={currentStock <= 0}
-                      style={{ width: '100%', justifyContent: 'center', padding: '0.8rem 1.25rem', fontSize: '0.95rem', opacity: currentStock <= 0 ? 0.6 : 1 }}
-                    >
-                      <i className="fas fa-plus-circle"></i> {currentStock > 0 ? `Tambah (Rp ${item.price.toLocaleString('id-ID')})` : 'Stok Habis'}
-                    </button>
                   </div>
+
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.25rem', flexGrow: 1 }}>
+                    {item.desc}
+                  </p>
+
+                  {/* Stock info badge (Directly from menuData.js) */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '900', color: item.stock > 0 ? 'var(--dr-primary)' : '#EF4444' }}>
+                        {item.stock > 0 ? `${item.stock} Pcs` : 'Habis (Sold Out)'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="btn-hero-primary btn-hero-dapur"
+                    disabled={item.stock <= 0}
+                    style={{ width: '100%', justifyContent: 'center', padding: '0.8rem 1.25rem', fontSize: '0.95rem', opacity: item.stock <= 0 ? 0.6 : 1 }}
+                  >
+                    <i className="fas fa-plus-circle"></i> {item.stock > 0 ? `Tambah (Rp ${item.price.toLocaleString('id-ID')})` : 'Stok Habis'}
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           {/* STAY TUNED BANNER FOR FUTURE PRODUCTS */}
