@@ -21,22 +21,28 @@ export default function DapurRofi() {
     };
   }, [isFokus]);
 
-  // Stock Management State for multiple variants (Mini 3K & Medium 6K)
-  const [stocks, setStocks] = useState(() => {
-    const saved = localStorage.getItem('rofi_dessert_stocks_v2');
+  // Stock Deductions State (Tracks items bought by customers)
+  const [deductions, setDeductions] = useState(() => {
+    const saved = localStorage.getItem('rofi_stock_deductions_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return { 1: menuItems[0].stock, 2: menuItems[1].stock };
+        return {};
       }
     }
-    return { 1: menuItems[0].stock, 2: menuItems[1].stock };
+    return {};
   });
 
   useEffect(() => {
-    localStorage.setItem('rofi_dessert_stocks_v2', JSON.stringify(stocks));
-  }, [stocks]);
+    localStorage.setItem('rofi_stock_deductions_v2', JSON.stringify(deductions));
+  }, [deductions]);
+
+  // Helper to calculate live remaining stock: menuData.js stock minus customer purchases
+  const getLiveStock = (item) => {
+    const deduct = deductions[item.id] || 0;
+    return Math.max(0, item.stock - deduct);
+  };
 
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
@@ -54,16 +60,17 @@ export default function DapurRofi() {
 
   // Admin Stock Manager Function (Only accessible in Admin mode)
   const handleRestockAdmin = (item) => {
-    const current = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
+    const current = getLiveStock(item);
     const input = prompt(`[Admin Dapur Rofi]\n\nMasukkan jumlah stok baru untuk ${item.name}:`, current.toString());
     if (input !== null) {
       const newStockVal = parseInt(input, 10);
       if (!isNaN(newStockVal) && newStockVal >= 0) {
-        setStocks(prev => ({
+        const newDeduct = Math.max(0, item.stock - newStockVal);
+        setDeductions(prev => ({
           ...prev,
-          [item.id]: newStockVal
+          [item.id]: newDeduct
         }));
-        triggerToast(`Stok ${item.name} berhasil diisi ulang menjadi ${newStockVal} Pcs!`);
+        triggerToast(`Stok ${item.name} berhasil diperbarui menjadi ${newStockVal} Pcs!`);
       } else {
         alert('Mohon masukkan angka stok yang valid!');
       }
@@ -71,7 +78,7 @@ export default function DapurRofi() {
   };
 
   const addToCart = (item) => {
-    const currentStock = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
+    const currentStock = getLiveStock(item);
     if (currentStock <= 0) {
       return alert(`Maaf, stok ${item.name} saat ini sudah habis (Sold Out)!`);
     }
@@ -92,11 +99,12 @@ export default function DapurRofi() {
   };
 
   const updateQty = (id, change) => {
+    const item = menuItems.find(m => m.id === id);
     setCart(prev => {
       const existing = prev.find(c => c.id === id);
       if (!existing) return prev;
 
-      const currentStock = stocks[id] !== undefined ? stocks[id] : 0;
+      const currentStock = item ? getLiveStock(item) : 0;
       const newQty = existing.qty + change;
       if (newQty > currentStock) {
         alert(`Maaf, stok hanya tersisa ${currentStock} Pcs!`);
@@ -118,7 +126,7 @@ export default function DapurRofi() {
 
     // Check stock for each item in cart
     for (const item of cart) {
-      const available = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
+      const available = getLiveStock(item);
       if (item.qty > available) {
         return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${available} Pcs.`);
       }
@@ -144,12 +152,12 @@ export default function DapurRofi() {
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
-    // Reduce stock dynamically upon order checkout
-    setStocks(prev => {
+    // Deduct stock dynamically upon order checkout
+    setDeductions(prev => {
       const next = { ...prev };
       cart.forEach(item => {
-        const cur = next[item.id] !== undefined ? next[item.id] : item.stock;
-        next[item.id] = Math.max(0, cur - item.qty);
+        const curDeduct = next[item.id] || 0;
+        next[item.id] = curDeduct + item.qty;
       });
       return next;
     });
@@ -231,7 +239,7 @@ export default function DapurRofi() {
           {/* Product Grid (2 Variants: Mini 3K & Medium 6K) */}
           <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
             {menuItems.map((item) => {
-              const currentStock = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
+              const currentStock = getLiveStock(item);
 
               return (
                 <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
