@@ -6,9 +6,6 @@ import ContactSection from '../components/ContactSection';
 import MediaSosialSection from '../components/MediaSosialSection';
 import CtaSection from '../components/CtaSection';
 
-// Global Cloud Real-Time Database Endpoint
-const GLOBAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fd74aee9902e1';
-
 export default function DapurRofi() {
   const { isFokus } = useFocusMode();
 
@@ -37,18 +34,24 @@ export default function DapurRofi() {
     return { 1: 0, 2: 0 };
   });
 
-  // Fetch real-time deductions from Cloud DB every 5 seconds
+  // Fetch real-time deductions from Vercel / Cloud API every 3 seconds
   useEffect(() => {
     let isMounted = true;
 
     const fetchCloudDeductions = async () => {
       try {
-        const res = await fetch(GLOBAL_CLOUD_DB_URL);
+        const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        const url = isLocal
+          ? 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fd74aee9902e1'
+          : '/api/stock';
+
+        const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();
-          if (json && json.data && isMounted) {
-            setDeductions(json.data);
-            localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(json.data));
+          const data = json.deductions || json.data;
+          if (data && isMounted) {
+            setDeductions(data);
+            localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(data));
           }
         }
       } catch (err) {
@@ -57,7 +60,7 @@ export default function DapurRofi() {
     };
 
     fetchCloudDeductions();
-    const interval = setInterval(fetchCloudDeductions, 5000);
+    const interval = setInterval(fetchCloudDeductions, 3000);
 
     return () => {
       isMounted = false;
@@ -71,13 +74,19 @@ export default function DapurRofi() {
     localStorage.setItem('rofi_stock_deductions_cloud_v1', JSON.stringify(newDeductions));
 
     try {
-      await fetch(GLOBAL_CLOUD_DB_URL, {
-        method: 'PUT',
+      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const url = isLocal
+        ? 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fd74aee9902e1'
+        : '/api/stock';
+
+      const payload = isLocal
+        ? { name: 'Dapur Rofi Stock Deductions', data: newDeductions }
+        : { deductions: newDeductions };
+
+      await fetch(url, {
+        method: isLocal ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Dapur Rofi Stock Deductions',
-          data: newDeductions
-        })
+        body: JSON.stringify(payload)
       });
     } catch (err) {
       console.error('Failed to push stock update to cloud:', err);
