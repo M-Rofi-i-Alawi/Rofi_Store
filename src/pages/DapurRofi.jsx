@@ -116,11 +116,11 @@ export default function DapurRofi() {
   // Admin Stock Manager Function (Only accessible in Admin mode)
   const handleRestockAdmin = (item) => {
     const current = getLiveStock(item);
-    const input = prompt(`[Admin Dapur Rofi]\n\nMasukkan jumlah stok baru untuk ${item.name}:`, current.toString());
+    const input = prompt(`[Admin Dapur Rofi]\n\nMasukkan jumlah sisa stok aktual saat ini untuk ${item.name}:`, current.toString());
     if (input !== null) {
       const newStockVal = parseInt(input, 10);
       if (!isNaN(newStockVal) && newStockVal >= 0) {
-        const newDeduct = Math.max(0, item.stock - newStockVal);
+        const newDeduct = item.stock - newStockVal;
         const updatedDeductions = {
           ...deductions,
           [item.id]: newDeduct

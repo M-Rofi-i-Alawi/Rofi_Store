@@ -10,7 +10,7 @@ export const menuItems = [
     rating: 5.0,
     badge: "Porsi Hemat (3K)",
     badgeType: "promo",
-    stock: 20,
+    stock: 4,
     image: dessertUbiUngu,
     desc: "Dessert ubi ungu porsi mini nan lembut lumer di mulut dengan vla creamy dan keju parut gurih yang pas untuk camilan hemat!"
   },
@@ -23,7 +23,7 @@ export const menuItems = [
     rating: 5.0,
     badge: "Porsi Puas (6K)",
     badgeType: "promo",
-    stock: 10,
+    stock: 11,
     image: dessertUbiUngu,
     desc: "Dessert ubi ungu porsi medium dengan racikan ubi ungu super lumer, vla melimpah, dan taburan keju gurih nikmat mantap!"
   }
