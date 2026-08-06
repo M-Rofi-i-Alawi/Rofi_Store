@@ -31,9 +31,29 @@ export default function DapurRofi() {
     return {};
   });
 
+  // Reset session deductions when base stock values change (e.g., after you edit menuData.js)
   useEffect(() => {
-    localStorage.setItem('rofi_session_deductions_v3', JSON.stringify(sessionDeductions));
-  }, [sessionDeductions]);
+    // Compare current deductions with new base stock; if any deduction exceeds new stock, clear all deductions
+    const needsReset = Object.entries(sessionDeductions).some(([id, deducted]) => {
+      const item = menuItems.find(m => m.id === Number(id));
+      return item && deducted > item.stock;
+    });
+    if (needsReset) {
+      setSessionDeductions({});
+      localStorage.removeItem('rofi_session_deductions_v3');
+    }
+  }, [menuItems]);
+
+  // Admin reset button (visible with ?admin=true)
+  const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+
+  const handleAdminReset = () => {
+    if (confirm('Reset semua deduksi stok sesi?')) {
+      setSessionDeductions({});
+      localStorage.removeItem('rofi_session_deductions_v3');
+      triggerToast('Stok sesi berhasil direset');
+    }
+  };
 
   // Helper: Live stock = base menuData.js stock minus completed session orders
   const getItemStock = (item) => {
