@@ -1,20 +1,29 @@
 import { useState } from 'react';
 import { MERCHANT_WA_NUMBER } from '../data/menuData';
 
-export default function ProductDetailModal({ item, onClose, onAddToCart }) {
+export default function ProductDetailModal({ item, onClose }) {
   const [qty, setQty] = useState(1);
+  const [custName, setCustName] = useState('');
+  const [custClass, setCustClass] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('QRIS');
   const [notes, setNotes] = useState('');
 
   if (!item) return null;
 
   const handleWAOrderDirect = () => {
+    if (!custName.trim()) return alert('Mohon isi Nama Pemesan terlebih dahulu!');
+    if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
+
     const totalPrice = item.price * qty;
-    let msg = `*HALO DAPUR ROFI! SAYA INGIN MEMESAN PRODUK PILIHAN* 🍽️\n\n`;
-    msg += `📦 *Produk:* ${item.name}\n`;
-    msg += `🔢 *Jumlah:* ${qty}x\n`;
-    msg += `💰 *Total Harga:* Rp ${totalPrice.toLocaleString('id-ID')}\n`;
-    if (notes) msg += `💬 *Catatan:* ${notes}\n`;
-    msg += `\nMohon informasi pengiriman ya kak! Terima kasih! 🙏`;
+    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍧\n\n`;
+    msg += `👤 *Nama:* ${custName.trim()}\n`;
+    msg += `🏫 *Kelas:* ${custClass.trim()}\n`;
+    msg += `💳 *Metode Pembayaran:* ${paymentMethod}\n\n`;
+    msg += `📝 *Rincian Pesanan:*\n`;
+    msg += `1. ${item.name} (${qty}x) = Rp ${totalPrice.toLocaleString('id-ID')}\n\n`;
+    msg += `💰 *Total Pembayaran:* Rp ${totalPrice.toLocaleString('id-ID')}\n`;
+    if (notes.trim()) msg += `💬 *Catatan:* ${notes.trim()}\n`;
+    msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -34,7 +43,7 @@ export default function ProductDetailModal({ item, onClose, onAddToCart }) {
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ backgroundColor: 'var(--dr-primary-light)', color: 'var(--dr-primary)', padding: '4px 10px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '800' }}>
-              {item.category === 'makanan' ? 'Makanan' : item.category === 'minuman' ? 'Minuman' : 'Menu'}
+              Spesial Dapur Rofi
             </span>
             <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--dark)' }}>
               {item.name}
@@ -93,8 +102,8 @@ export default function ProductDetailModal({ item, onClose, onAddToCart }) {
             {item.desc}
           </p>
 
-          {/* Qty and Notes */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--dr-primary-light)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+          {/* Form Pemesanan: Qty, Nama, Kelas, Pembayaran */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--dr-bg-alt)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: '800', fontSize: '0.95rem', color: 'var(--dark)' }}>Jumlah Porsi:</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -115,14 +124,90 @@ export default function ProductDetailModal({ item, onClose, onAddToCart }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px', color: 'var(--dark)' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
+                Nama Pemesan *
+              </label>
+              <input
+                type="text"
+                required
+                value={custName}
+                onChange={(e) => setCustName(e.target.value)}
+                placeholder="Masukkan nama Anda"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--dark)', outline: 'none', fontSize: '0.9rem' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
+                Kelas *
+              </label>
+              <input
+                type="text"
+                required
+                value={custClass}
+                onChange={(e) => setCustClass(e.target.value)}
+                placeholder="Contoh: XII Digital Marketing 1"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--dark)', outline: 'none', fontSize: '0.9rem' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
+                Metode Pembayaran *
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('QRIS')}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '10px',
+                    border: paymentMethod === 'QRIS' ? '2px solid var(--dr-primary)' : '1px solid var(--border-color)',
+                    backgroundColor: paymentMethod === 'QRIS' ? 'var(--dr-primary-light)' : 'var(--card-bg)',
+                    color: paymentMethod === 'QRIS' ? 'var(--dr-primary)' : 'var(--dark)',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <i className="fas fa-qrcode"></i> QRIS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('Cash')}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '10px',
+                    border: paymentMethod === 'Cash' ? '2px solid var(--dr-primary)' : '1px solid var(--border-color)',
+                    backgroundColor: paymentMethod === 'Cash' ? 'var(--dr-primary-light)' : 'var(--card-bg)',
+                    color: paymentMethod === 'Cash' ? 'var(--dr-primary)' : 'var(--dark)',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> Cash
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
                 Catatan Pesanan (opsional):
               </label>
               <input
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Contoh: Pedas manis, tanpa bawang"
+                placeholder="Contoh: Keju parut agak dipisah"
                 style={{
                   width: '100%',
                   padding: '10px 14px',

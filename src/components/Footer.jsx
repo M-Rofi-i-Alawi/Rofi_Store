@@ -58,11 +58,6 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="#testimoni" style={{ color: 'inherit', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#FFFFFF'} onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}>
-                    <i className="fas fa-angle-right" style={{ marginRight: '6px', fontSize: '0.75rem' }}></i> Testimoni Pelanggan
-                  </a>
-                </li>
-                <li>
                   <a href="#faq" style={{ color: 'inherit', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#FFFFFF'} onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}>
                     <i className="fas fa-angle-right" style={{ marginRight: '6px', fontSize: '0.75rem' }}></i> FAQ &amp; Bantuan
                   </a>

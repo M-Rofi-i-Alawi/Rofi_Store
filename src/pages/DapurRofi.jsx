@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
-import foodHero from '../assets/images/food_hero.png';
 import { menuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
 import { useFocusMode } from '../context/FocusModeContext';
-import ProdukPilihanSection from '../components/ProdukPilihanSection';
-import TestimoniSection from '../components/TestimoniSection';
 import FAQSection from '../components/FAQSection';
 import ContactSection from '../components/ContactSection';
 import MediaSosialSection from '../components/MediaSosialSection';
@@ -14,37 +11,73 @@ export default function DapurRofi() {
 
   useEffect(() => {
     if (isFokus) {
-      document.title = 'Dapur Rofi | Kuliner Otentik, Lezat & Bikin Ketagihan';
+      document.title = 'Dapur Rofi | Dessert Ubi Ungu';
     }
     return () => {
       document.title = 'Rofi Store | Kuliner & Desain Grafis';
     };
   }, [isFokus]);
-  const [activeFilter, setActiveFilter] = useState('all');
+
+  // Stock Management State for multiple variants (Mini 3K & Medium 6K)
+  const [stocks, setStocks] = useState(() => {
+    const saved = localStorage.getItem('rofi_dessert_stocks_v2');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return { 1: 20, 2: 10 };
+      }
+    }
+    return { 1: 20, 2: 10 };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rofi_dessert_stocks_v2', JSON.stringify(stocks));
+  }, [stocks]);
+
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
+
+  // Form State for Checkout
   const [custName, setCustName] = useState('');
-  const [custAddress, setCustAddress] = useState('');
-  const [custNotes, setCustNotes] = useState('');
-
-  const categories = [
-    { key: 'all', label: 'Semua Menu', icon: 'fa-utensils' },
-    { key: 'makanan', label: 'Makanan Utama', icon: 'fa-drumstick-bite' },
-    { key: 'camilan', label: 'Camilan & Snack', icon: 'fa-cookie' },
-    { key: 'minuman', label: 'Minuman Segar', icon: 'fa-glass-cheers' },
-  ];
-
-  const filteredItems = activeFilter === 'all'
-    ? menuItems
-    : menuItems.filter(item => item.category === activeFilter);
+  const [custClass, setCustClass] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('QRIS');
 
   const triggerToast = (msg) => {
     setToast({ show: true, message: msg });
-    setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    setTimeout(() => setToast({ show: false, message: '' }), 3500);
+  };
+
+  // Admin Stock Manager Function (Quick Restock)
+  const handleRestockAdmin = (item) => {
+    const current = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
+    const input = prompt(`[Admin Dapur Rofi]\n\nMasukkan jumlah stok baru untuk ${item.name}:`, current.toString());
+    if (input !== null) {
+      const newStockVal = parseInt(input, 10);
+      if (!isNaN(newStockVal) && newStockVal >= 0) {
+        setStocks(prev => ({
+          ...prev,
+          [item.id]: newStockVal
+        }));
+        triggerToast(`Stok ${item.name} berhasil diisi ulang menjadi ${newStockVal} Pcs!`);
+      } else {
+        alert('Mohon masukkan angka stok yang valid!');
+      }
+    }
   };
 
   const addToCart = (item) => {
+    const currentStock = stocks[item.id] || 0;
+    if (currentStock <= 0) {
+      return alert(`Maaf, stok ${item.name} saat ini sudah habis (Sold Out)!`);
+    }
+
+    const currentQtyInCart = cart.find(c => c.id === item.id)?.qty || 0;
+    if (currentQtyInCart + 1 > currentStock) {
+      return alert(`Maaf, stok ${item.name} hanya tersisa ${currentStock} Pcs!`);
+    }
+
     setCart(prev => {
       const existing = prev.find(c => c.id === item.id);
       if (existing) {
@@ -57,7 +90,17 @@ export default function DapurRofi() {
 
   const updateQty = (id, change) => {
     setCart(prev => {
-      const updated = prev.map(c => c.id === id ? { ...c, qty: c.qty + change } : c);
+      const existing = prev.find(c => c.id === id);
+      if (!existing) return prev;
+
+      const currentStock = stocks[id] || 0;
+      const newQty = existing.qty + change;
+      if (newQty > currentStock) {
+        alert(`Maaf, stok hanya tersisa ${currentStock} Pcs!`);
+        return prev;
+      }
+
+      const updated = prev.map(c => c.id === id ? { ...c, qty: newQty } : c);
       return updated.filter(c => c.qty > 0);
     });
   };
@@ -67,12 +110,28 @@ export default function DapurRofi() {
 
   const processCheckout = () => {
     if (cart.length === 0) return alert('Keranjang pesanan masih kosong!');
-    const name = custName || 'Pelanggan';
-    const address = custAddress || 'Ambil di Tempat';
-    const notes = custNotes || '-';
+    if (!custName.trim()) return alert('Mohon isi Nama Pemesan terlebih dahulu!');
+    if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
 
-    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍽️\n\n`;
-    msg += `👤 *Nama:* ${name}\n📍 *Alamat:* ${address}\n\n📝 *Rincian Pesanan:*\n`;
+    // Check stock for each item in cart
+    for (const item of cart) {
+      const available = stocks[item.id] || 0;
+      if (item.qty > available) {
+        return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${available} Pcs.`);
+      }
+    }
+
+    const name = custName.trim();
+    const kelas = custClass.trim();
+    const payment = paymentMethod;
+
+    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍧\n\n`;
+    msg += `👤 *Nama:* ${name}\n`;
+    msg += `🏫 *Kelas:* ${kelas}\n`;
+    msg += `💳 *Metode Pembayaran:* ${payment}\n`;
+    msg += `📍 *Lokasi Antar:* Smakzie Lokasi Bawah (LB)\n`;
+    msg += `⏰ *Waktu Antar:* Jam Istirahat / Pulang Sekolah\n\n`;
+    msg += `📝 *Rincian Pesanan:*\n`;
     let total = 0;
     cart.forEach((item, i) => {
       const sub = item.price * item.qty;
@@ -80,8 +139,20 @@ export default function DapurRofi() {
       msg += `${i + 1}. ${item.name} (${item.qty}x) = Rp ${sub.toLocaleString('id-ID')}\n`;
     });
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
-    if (notes !== '-') msg += `💬 *Catatan:* ${notes}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
+
+    // Reduce stock dynamically upon order checkout
+    setStocks(prev => {
+      const next = { ...prev };
+      cart.forEach(item => {
+        next[item.id] = Math.max(0, (next[item.id] || 0) - item.qty);
+      });
+      return next;
+    });
+
+    setCart([]);
+    setShowCart(false);
+    triggerToast('Pesanan terkirim via WhatsApp! Stok produk telah berkurang.');
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -94,17 +165,17 @@ export default function DapurRofi() {
           <div className="hero-grid">
             <div>
               <div className="hero-badge" style={{ color: 'var(--dr-primary)', backgroundColor: 'var(--dr-primary-light)' }}>
-                <i className="fas fa-fire" style={{ color: 'var(--dr-secondary)' }}></i>
-                <span>Garansi 100% Halal &amp; Higienis</span>
+                <i className="fas fa-school" style={{ color: 'var(--dr-secondary)' }}></i>
+                <span>Khusus Smakzie Lokasi Bawah (LB)</span>
               </div>
 
               <h1 className="hero-title">
-                Cita Rasa Kuliner<br />
-                <span className="dr-text">Otentik</span> &amp; Lezat!
+                Sajian Manis<br />
+                <span className="dr-text">Dessert Ubi Ungu</span>
               </h1>
 
               <p className="hero-subtitle">
-                Olahan resep warisan keluarga dari rempah-rempah pilihan. Dimasak segar setiap hari dan siap diantar hangat langsung ke tempat Anda.
+                Dessert ubi ungu homemade lembut nan lumer dengan toping keju parut gurih melimpah. Diantar langsung saat jam istirahat atau pulang sekolah!
               </p>
 
               <div className="hero-buttons">
@@ -112,125 +183,162 @@ export default function DapurRofi() {
                   onClick={() => document.getElementById('menu').scrollIntoView({ behavior: 'smooth' })}
                   className="btn-hero-primary btn-hero-dapur"
                 >
-                  <i className="fas fa-utensils"></i> Lihat Menu
+                  <i className="fas fa-utensils"></i> Pilih Varian (3K &amp; 6K)
                 </button>
                 <a
-                  href={`https://wa.me/${MERCHANT_WA_NUMBER}?text=Halo%20Dapur%20Rofi!%20Saya%20ingin%20memesan.`}
+                  href={`https://wa.me/${MERCHANT_WA_NUMBER}?text=Halo%20Dapur%20Rofi!%20Saya%20ingin%20memesan%20Dessert%20Ubi%20Ungu.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-hero-primary"
                   style={{ backgroundColor: 'var(--accent-wa)', textDecoration: 'none' }}
                 >
-                  <i className="fab fa-whatsapp"></i> Pesan via WA
+                  <i className="fab fa-whatsapp"></i> Chat via WA
                 </a>
               </div>
 
-              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', fontSize: '0.875rem', fontWeight: '700', color: 'var(--text-muted)' }}>
-                <span><i className="fas fa-star" style={{ color: 'var(--dr-secondary)', marginRight: '6px' }}></i> 4.9/5 (1.2k+ Ulasan)</span>
-                <span><i className="fas fa-shipping-fast" style={{ color: 'var(--dr-primary)', marginRight: '6px' }}></i> Kirim Cepat 30 Mnt</span>
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', fontSize: '0.875rem', fontWeight: '700', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                <span><i className="fas fa-clock" style={{ color: 'var(--dr-secondary)', marginRight: '6px' }}></i> Antar Jam Istirahat / Pulang</span>
+                <span><i className="fas fa-wallet" style={{ color: 'var(--dr-primary)', marginRight: '6px' }}></i> QRIS / Cash</span>
               </div>
             </div>
 
             <div className="hero-img-box">
-              <img src={foodHero} alt="Dapur Rofi Hero" />
+              <img src={menuItems[0].image} alt="Dessert Ubi Ungu Dapur Rofi" style={{ borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* =============== PRODUK PILIHAN =============== */}
-      <ProdukPilihanSection onAddToCart={addToCart} />
-
       {/* =============== MENU CATALOG =============== */}
-      <section id="menu" style={{ padding: '5rem 0' }}>
+      <section id="menu" style={{ padding: '4rem 0' }}>
         <div className="app-container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <span className="hero-badge" style={{ color: 'var(--dr-primary)', backgroundColor: 'var(--dr-primary-light)' }}>
-              <i className="fas fa-utensils"></i> Katalog Makanan &amp; Minuman
+              <i className="fas fa-cookie-bite"></i> Menu &amp; Varian Dapur Rofi
             </span>
             <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--dark)', marginTop: '0.5rem' }}>
-              Seluruh Menu <span className="dr-text">Dapur Rofi</span>
+              Varian <span className="dr-text">Dessert Ubi Ungu</span>
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-              Pilih hidangan lezat dan camilan lumer favorit Anda. Tambahkan ke pesanan untuk dikirim via WhatsApp!
+              Pilih porsi favorit Anda! Tersedia varian Mini (3K) &amp; Medium (6K) siap antar di Smakzie LB.
             </p>
           </div>
 
-          {/* Category Filters */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.75rem', marginBottom: '3rem' }}>
-            {categories.map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => setActiveFilter(cat.key)}
-                style={{
-                  padding: '0.6rem 1.35rem',
-                  borderRadius: '999px',
-                  fontWeight: '700',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  border: '1px solid var(--border-color)',
-                  transition: 'var(--transition)',
-                  backgroundColor: activeFilter === cat.key ? 'var(--dr-primary)' : 'var(--card-bg, #F9FAFB)',
-                  color: activeFilter === cat.key ? '#FFFFFF' : 'var(--text-primary)',
-                  boxShadow: activeFilter === cat.key ? 'var(--shadow-sm)' : 'none'
-                }}
-              >
-                <i className={`fas ${cat.icon}`} style={{ marginRight: '6px' }}></i>
-                {cat.label}
-              </button>
-            ))}
-          </div>
+          {/* Product Grid (2 Variants: Mini 3K & Medium 6K) */}
+          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
+            {menuItems.map((item) => {
+              const currentStock = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
 
-          {/* Menu Items Grid */}
-          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
-            {filteredItems.map((item) => (
-              <div key={item.id} className="card-box scale-hover" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 0, overflow: 'hidden' }}>
-                <div style={{ position: 'relative', height: '200px' }}>
-                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  {item.badge && (
-                    <span style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '4px 12px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: '800' }}>
+              return (
+                <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ position: 'relative', height: '240px' }}>
+                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
                       {item.badge}
                     </span>
-                  )}
-                  <span style={{ position: 'absolute', top: '12px', right: '12px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '4px 10px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="fas fa-star"></i> {item.rating}
-                  </span>
-                </div>
+                    <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="fas fa-star"></i> {item.rating}
+                    </span>
+                  </div>
 
-                <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '0.5rem' }}>
-                    {item.name}
-                  </h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.25rem', flexGrow: 1, lineClamp: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {item.desc}
-                  </p>
+                  <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
+                        {item.name}
+                      </h3>
+                      <div>
+                        <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
+                          Rp {item.price.toLocaleString('id-ID')}
+                        </span>
+                        {item.oldPrice && (
+                          <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                            Rp {item.oldPrice.toLocaleString('id-ID')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-                    <div>
-                      <span style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
-                        Rp {item.price.toLocaleString('id-ID')}
-                      </span>
-                      {item.oldPrice && (
-                        <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          Rp {item.oldPrice.toLocaleString('id-ID')}
-                        </div>
-                      )}
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.25rem', flexGrow: 1 }}>
+                      {item.desc}
+                    </p>
+
+                    {/* Stock info badge & Admin edit button */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '900', color: currentStock > 0 ? 'var(--dr-primary)' : '#EF4444' }}>
+                          {currentStock > 0 ? `${currentStock} Pcs` : 'Habis (Sold Out)'}
+                        </span>
+                      </div>
+
+                      {/* Secret Admin Restok Button */}
+                      <button
+                        onClick={() => handleRestockAdmin(item)}
+                        title="Klik untuk mengisi ulang stok porsi"
+                        style={{
+                          background: 'rgba(230, 74, 25, 0.12)',
+                          border: 'none',
+                          color: 'var(--dr-primary)',
+                          borderRadius: '8px',
+                          padding: '4px 8px',
+                          fontSize: '0.75rem',
+                          fontWeight: '800',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ✏️ Isi Stok
+                      </button>
                     </div>
 
                     <button
                       onClick={() => addToCart(item)}
                       className="btn-hero-primary btn-hero-dapur"
-                      style={{ padding: '0.5rem 1.15rem', fontSize: '0.85rem' }}
+                      disabled={currentStock <= 0}
+                      style={{ width: '100%', justifyContent: 'center', padding: '0.8rem 1.25rem', fontSize: '0.95rem', opacity: currentStock <= 0 ? 0.6 : 1 }}
                     >
-                      <i className="fas fa-plus"></i> Pesan
+                      <i className="fas fa-plus-circle"></i> {currentStock > 0 ? `Tambah (Rp ${item.price.toLocaleString('id-ID')})` : 'Stok Habis'}
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+
+          {/* STAY TUNED BANNER FOR FUTURE PRODUCTS */}
+          <div
+            className="card-box"
+            style={{
+              maxWidth: '840px',
+              margin: '2.5rem auto 0',
+              padding: '1.75rem',
+              borderRadius: '24px',
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, rgba(230, 74, 25, 0.08) 0%, rgba(255, 143, 0, 0.12) 100%)',
+              border: '2px dashed var(--dr-primary)'
+            }}
+          >
+            <div style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>✨ 🎁 ✨</div>
+            <h4 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--dr-primary)', marginBottom: '0.5rem' }}>
+              Ditunggu Produk Selanjutnya!
+            </h4>
+            <p style={{ color: 'var(--dark)', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              Stay tuned terus untuk mendapatkan produk baru selanjutnya dari Dapur Rofi 💖
+            </p>
           </div>
         </div>
       </section>
+
+      {/* =============== FAQ =============== */}
+      <FAQSection />
+
+      {/* =============== KONTAK =============== */}
+      <ContactSection />
+
+      {/* =============== MEDIA SOSIAL =============== */}
+      <MediaSosialSection />
+
+      {/* =============== CTA BANNER =============== */}
+      <CtaSection />
 
       {/* Floating Cart Button */}
       {cartCount > 0 && (
@@ -249,150 +357,183 @@ export default function DapurRofi() {
             fontWeight: '800',
             fontSize: '0.95rem',
             boxShadow: 'var(--shadow-lg)',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            cursor: 'pointer'
+            gap: '10px'
           }}
         >
-          <i className="fas fa-shopping-bag" style={{ fontSize: '1.1rem' }}></i>
-          <span>Keranjang Pesanan ({cartCount})</span>
-          <span style={{ backgroundColor: '#FFFFFF', color: 'var(--dr-primary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
-            Rp {cartTotal.toLocaleString('id-ID')}
-          </span>
+          <i className="fas fa-shopping-basket" style={{ fontSize: '1.2rem' }}></i>
+          <span>Pesanan ({cartCount}) &bull; Rp {cartTotal.toLocaleString('id-ID')}</span>
         </button>
       )}
 
-      {/* Toast Notification */}
-      {toast.show && (
-        <div style={{
-          position: 'fixed',
-          top: '90px',
-          right: '24px',
-          backgroundColor: '#10B981',
-          color: '#FFFFFF',
-          padding: '12px 20px',
-          borderRadius: '12px',
-          boxShadow: 'var(--shadow-md)',
-          zIndex: 9999,
-          fontWeight: '800',
-          fontSize: '0.9rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <i className="fas fa-check-circle"></i> {toast.message}
-        </div>
-      )}
-
-      {/* Cart Modal Drawer */}
+      {/* Cart & Checkout Modal */}
       {showCart && (
-        <div className="modal-overlay active" onClick={() => setShowCart(false)}>
-          <div className="cart-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
+        <div className="modal-overlay active" onClick={(e) => e.target.classList.contains('modal-overlay') && setShowCart(false)}>
+          <div className="cart-modal">
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--dark)' }}>
-                <i className="fas fa-shopping-bag" style={{ color: 'var(--dr-primary)', marginRight: '8px' }}></i>
-                Keranjang Pesanan Dapur Rofi
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--dark)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <i className="fas fa-shopping-basket" style={{ color: 'var(--dr-primary)' }}></i> Keranjang Pesanan
               </h3>
-              <button onClick={() => setShowCart(false)} style={{ background: 'none', border: 'none', fontSize: '1.3rem', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                <i className="fas fa-times"></i>
+              <button
+                onClick={() => setShowCart(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                &times;
               </button>
             </div>
 
-            <div style={{ padding: '1.5rem', overflowY: 'auto', maxHeight: '55vh' }}>
+            <div style={{ padding: '1.5rem', overflowY: 'auto', maxHeight: '60vh' }}>
               {cart.length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '2rem 0' }}>Keranjang pesanan masih kosong.</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0' }}>Keranjang pesanan masih kosong.</p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {cart.map((item) => (
-                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src={item.image} alt={item.name} style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }} />
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                    {cart.map((item) => (
+                      <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)' }}>
                         <div>
-                          <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--dark)' }}>{item.name}</h4>
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--dark)', margin: 0 }}>{item.name}</h4>
                           <span style={{ fontSize: '0.85rem', color: 'var(--dr-primary)', fontWeight: '700' }}>
-                            Rp {item.price.toLocaleString('id-ID')}
+                            Rp {item.price.toLocaleString('id-ID')} x {item.qty} = Rp {(item.price * item.qty).toLocaleString('id-ID')}
                           </span>
                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button onClick={() => updateQty(item.id, -1)} style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid var(--border-color)', background: 'var(--card-bg)', cursor: 'pointer', fontWeight: '800' }}>-</button>
+                          <span style={{ fontWeight: '800', fontSize: '0.9rem' }}>{item.qty}</span>
+                          <button onClick={() => updateQty(item.id, 1)} style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid var(--border-color)', background: 'var(--card-bg)', cursor: 'pointer', fontWeight: '800' }}>+</button>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button onClick={() => updateQty(item.id, -1)} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--card-bg, #FFF)', fontWeight: '800', cursor: 'pointer' }}>-</button>
-                        <span style={{ fontWeight: '800', fontSize: '0.9rem' }}>{item.qty}</span>
-                        <button onClick={() => updateQty(item.id, 1)} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--card-bg, #FFF)', fontWeight: '800', cursor: 'pointer' }}>+</button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
 
-                  {/* Customer Information Input */}
-                  <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* Form Pemesanan: Nama, Kelas, Pembayaran (QRIS / Cash) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--dark)', margin: 0 }}>
+                      📋 Data Pemesan (Antar ke Smakzie LB):
+                    </h4>
+
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--dark)' }}>Nama Anda:</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
+                        Nama Pemesan *
+                      </label>
                       <input
                         type="text"
+                        required
                         value={custName}
                         onChange={(e) => setCustName(e.target.value)}
-                        placeholder="Contoh: Budi"
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--card-bg, #FFF)', color: 'inherit', outline: 'none' }}
+                        placeholder="Contoh: Rofi Alawi"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--dark)', outline: 'none', fontSize: '0.9rem' }}
                       />
                     </div>
+
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--dark)' }}>Alamat Pengiriman:</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
+                        Kelas *
+                      </label>
                       <input
                         type="text"
-                        value={custAddress}
-                        onChange={(e) => setCustAddress(e.target.value)}
-                        placeholder="Contoh: Jl. Merdeka No. 12"
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--card-bg, #FFF)', color: 'inherit', outline: 'none' }}
+                        required
+                        value={custClass}
+                        onChange={(e) => setCustClass(e.target.value)}
+                        placeholder="Contoh: XII RPL 2"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--dark)', outline: 'none', fontSize: '0.9rem' }}
                       />
                     </div>
+
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--dark)' }}>Catatan Pesanan:</label>
-                      <input
-                        type="text"
-                        value={custNotes}
-                        onChange={(e) => setCustNotes(e.target.value)}
-                        placeholder="Contoh: Sambal dipisah"
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--card-bg, #FFF)', color: 'inherit', outline: 'none' }}
-                      />
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '4px', color: 'var(--dark)' }}>
+                        Metode Pembayaran *
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('QRIS')}
+                          style={{
+                            padding: '10px',
+                            borderRadius: '10px',
+                            border: paymentMethod === 'QRIS' ? '2px solid var(--dr-primary)' : '1px solid var(--border-color)',
+                            backgroundColor: paymentMethod === 'QRIS' ? 'var(--dr-primary-light)' : 'var(--card-bg)',
+                            color: paymentMethod === 'QRIS' ? 'var(--dr-primary)' : 'var(--dark)',
+                            fontWeight: '800',
+                            fontSize: '0.9rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <i className="fas fa-qrcode"></i> QRIS
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('Cash')}
+                          style={{
+                            padding: '10px',
+                            borderRadius: '10px',
+                            border: paymentMethod === 'Cash' ? '2px solid var(--dr-primary)' : '1px solid var(--border-color)',
+                            backgroundColor: paymentMethod === 'Cash' ? 'var(--dr-primary-light)' : 'var(--card-bg)',
+                            color: paymentMethod === 'Cash' ? 'var(--dr-primary)' : 'var(--dark)',
+                            fontWeight: '800',
+                            fontSize: '0.9rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <i className="fas fa-money-bill-wave"></i> Cash
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
-            <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>Total Bayar:</span>
-                <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
-                  Rp {cartTotal.toLocaleString('id-ID')}
-                </span>
+            {cart.length > 0 && (
+              <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--dr-bg-alt)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', fontWeight: '800', fontSize: '1.1rem' }}>
+                  <span>Total Pembayaran:</span>
+                  <span style={{ color: 'var(--dr-primary)', fontSize: '1.25rem' }}>Rp {cartTotal.toLocaleString('id-ID')}</span>
+                </div>
+                <button
+                  onClick={processCheckout}
+                  className="btn-hero-primary"
+                  style={{ width: '100%', justifyContent: 'center', backgroundColor: 'var(--accent-wa)', padding: '0.85rem' }}
+                >
+                  <i className="fab fa-whatsapp" style={{ fontSize: '1.2rem' }}></i> Kirim Pesanan via WhatsApp
+                </button>
               </div>
-              <button
-                onClick={processCheckout}
-                className="btn-hero-primary btn-hero-dapur"
-                style={{ padding: '0.75rem 1.5rem' }}
-              >
-                <i className="fab fa-whatsapp"></i> Checkout WhatsApp
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* =============== TESTIMONI =============== */}
-      <TestimoniSection />
-
-      {/* =============== FAQ =============== */}
-      <FAQSection />
-
-      {/* =============== KONTAK =============== */}
-      <ContactSection />
-
-      {/* =============== MEDIA SOSIAL =============== */}
-      <MediaSosialSection />
-
-      {/* =============== CTA =============== */}
-      <CtaSection />
+      {/* Toast Alert */}
+      {toast.show && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          backgroundColor: '#10B981',
+          color: '#FFFFFF',
+          padding: '12px 22px',
+          borderRadius: '14px',
+          boxShadow: 'var(--shadow-lg)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontWeight: '800',
+          fontSize: '0.9rem'
+        }}>
+          <i className="fas fa-check-circle"></i>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,26 @@
 import { useState } from 'react';
+import { useFocusMode } from '../context/FocusModeContext';
 
-const faqData = [
+const dapurFaqData = [
+  {
+    q: "Bagaimana cara memesan Dessert Ubi Ungu di Dapur Rofi?",
+    a: "PILIH varian Dessert Ubi Ungu (Mini 3K atau Medium 6K), isi Nama Pemesan & Kelas Anda, pilih Metode Pembayaran (QRIS atau Cash), lalu klik tombol 'Kirim Pesanan via WhatsApp'."
+  },
+  {
+    q: "Dimana dan kapan pesanan saya akan diantar?",
+    a: "Pengiriman dilakukan khusus di area Smakzie Lokasi Bawah (LB) dan diantar langsung pada Jam Istirahat atau Jam Pulang Sekolah."
+  },
+  {
+    q: "Metode pembayaran apa saja yang didukung?",
+    a: "Kami mendukung pembayaran melalui QRIS (Scan Barcode) dan Cash (Tunai saat pengantaran di Smakzie LB)."
+  },
+  {
+    q: "Apakah Dessert Ubi Ungu Dapur Rofi 100% Halal & Higienis?",
+    a: "Ya! Seluruh bahan ubi ungu pilihan, vla creamy, keju parut, dan proses pembuatan dijamin 100% Halal, higienis, dan tanpa bahan pengawet sintetik."
+  }
+];
+
+const mainFaqData = [
   {
     q: "Bagaimana cara memesan makanan di Dapur Rofi?",
     a: "Anda dapat memilih menu favorit pada katalog Dapur Rofi, lalu klik tombol 'Pesan via WhatsApp'. Sistem akan memformat rincian pesanan Anda dan langsung membukanya di aplikasi WhatsApp."
@@ -19,41 +39,45 @@ const faqData = [
   },
   {
     q: "Metode pembayaran apa saja yang didukung?",
-    a: "Kami menerima pembayaran melalui Transfer Bank (BCA, Mandiri, BRI), E-Wallet (GoPay, OVO, ShopeePay, DANA), QRIS, serta Cash on Delivery (COD) khusus area Cianjur."
+    a: "Kami menerima pembayaran melalui Transfer Bank, E-Wallet, QRIS, serta Cash."
   },
   {
     q: "Apakah layanan desain grafis termasuk revisi?",
-    a: "Tentu! Setiap pesanan desain sudah termasuk jatah revisi gratis (1-3x revisi) untuk memastikan hasil akhir sesuai dengan kebutuhan brand atau acara Anda."
+    a: "Tentu! Setiap pesanan desain sudah termasuk jatah revisi gratis (1-3x revisi) untuk memastikan hasil akhir sesuai dengan kebutuhan brand Anda."
   }
 ];
 
 export default function FAQSection() {
+  const { isFokus, fokusBrand } = useFocusMode();
+  const isDapurMode = isFokus && fokusBrand === 'dapur';
+  const faqList = isDapurMode ? dapurFaqData : mainFaqData;
+
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <section id="faq" style={{ padding: '5rem 0' }}>
       <div className="app-container" style={{ maxWidth: '840px' }}>
         <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-          <span className="hero-badge" style={{ color: 'var(--rd-primary)', backgroundColor: 'var(--rd-primary-light)' }}>
+          <span className="hero-badge" style={{ color: 'var(--dr-primary)', backgroundColor: 'var(--dr-primary-light)' }}>
             <i className="fas fa-question-circle"></i> Pertanyaan Umum
           </span>
           <h2 style={{ fontSize: '2.25rem', fontWeight: '900', color: 'var(--dark)', marginTop: '0.5rem' }}>
-            Frequently Asked <span className="rd-text">Questions</span>
+            Frequently Asked <span className="dr-text">Questions</span>
           </h2>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {faqData.map((item, index) => {
+          {faqList.map((item, index) => {
             const isOpen = activeIndex === index;
             return (
               <div
                 key={index}
                 style={{
-                  border: isOpen ? '1px solid var(--rd-primary)' : '1px solid var(--border-color)',
+                  border: isOpen ? '1px solid var(--dr-primary)' : '1px solid var(--border-color)',
                   borderRadius: '16px',
                   overflow: 'hidden',
                   transition: 'var(--transition)',
-                  backgroundColor: isOpen ? 'var(--rd-primary-light)' : 'var(--card-bg)'
+                  backgroundColor: isOpen ? 'var(--dr-primary-light)' : 'var(--card-bg)'
                 }}
               >
                 <button
@@ -77,7 +101,7 @@ export default function FAQSection() {
                   <i
                     className={`fas fa-chevron-down`}
                     style={{
-                      color: 'var(--rd-primary)',
+                      color: 'var(--dr-primary)',
                       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                       transition: 'transform 0.3s ease',
                       marginLeft: '1rem'

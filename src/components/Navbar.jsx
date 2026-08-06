@@ -58,13 +58,6 @@ export default function Navbar() {
               Menu
             </a>
             <a
-              href="#testimoni"
-              onClick={(e) => handleNavAnchor(e, 'testimoni')}
-              className="nav-link-item"
-            >
-              Testimoni
-            </a>
-            <a
               href="#faq"
               onClick={(e) => handleNavAnchor(e, 'faq')}
               className="nav-link-item"
@@ -161,9 +154,6 @@ export default function Navbar() {
           >
             <a href="#menu" onClick={(e) => handleNavAnchor(e, 'menu')} className="nav-link-item active-dapur" style={{ padding: '0.8rem 1rem' }}>
               <i className="fas fa-utensils" style={{ width: '24px' }}></i> Menu
-            </a>
-            <a href="#testimoni" onClick={(e) => handleNavAnchor(e, 'testimoni')} className="nav-link-item" style={{ padding: '0.8rem 1rem' }}>
-              <i className="fas fa-star" style={{ width: '24px' }}></i> Testimoni
             </a>
             <a href="#faq" onClick={(e) => handleNavAnchor(e, 'faq')} className="nav-link-item" style={{ padding: '0.8rem 1rem' }}>
               <i className="fas fa-question-circle" style={{ width: '24px' }}></i> FAQ

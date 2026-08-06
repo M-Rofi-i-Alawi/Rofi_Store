@@ -1,39 +1,77 @@
+import { useFocusMode } from '../context/FocusModeContext';
+
 export default function MediaSosialSection() {
-  const socials = [
-    {
-      name: 'TikTok',
-      handle: '@rofi_editz',
-      icon: 'fab fa-tiktok',
-      color: 'linear-gradient(135deg, #000000 0%, #25F4EE 50%, #FE2C55 100%)',
-      link: 'https://www.tiktok.com/@rofi_editz?_r=1&_t=ZS-98ZG8RlHiHo'
-    },
-    {
-      name: 'Instagram',
-      handle: '@rofi_editz',
-      icon: 'fab fa-instagram',
-      color: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-      link: 'https://www.instagram.com/rofi_editz?igsh=MXIydXl6N3Q2cGNz'
-    }
-  ];
+  const { isFokus, fokusBrand } = useFocusMode();
+  const isDapurMode = isFokus && fokusBrand === 'dapur';
+
+  const socials = isDapurMode
+    ? [
+        {
+          name: 'TikTok Official',
+          handle: '@ropiew',
+          icon: 'fab fa-tiktok',
+          color: 'linear-gradient(135deg, #000000 0%, #25F4EE 50%, #FE2C55 100%)',
+          link: 'https://www.tiktok.com/@ropiew?_r=1&_t=ZS-98ZGL08EV18'
+        },
+        {
+          name: 'Instagram Official',
+          handle: '@rofiialawi',
+          icon: 'fab fa-instagram',
+          color: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+          link: 'https://www.instagram.com/rofiialawi?igsh=Z2ZqYm5naWo2N3ly'
+        }
+      ]
+    : [
+        {
+          name: 'TikTok Official',
+          handle: '@ropiew',
+          icon: 'fab fa-tiktok',
+          color: 'linear-gradient(135deg, #000000 0%, #25F4EE 50%, #FE2C55 100%)',
+          link: 'https://www.tiktok.com/@ropiew?_r=1&_t=ZS-98ZGL08EV18'
+        },
+        {
+          name: 'TikTok Editing',
+          handle: '@rofi_editz',
+          icon: 'fab fa-tiktok',
+          color: 'linear-gradient(135deg, #000000 0%, #FE2C55 100%)',
+          link: 'https://www.tiktok.com/@rofi_editz?_r=1&_t=ZS-98ZG8RlHiHo'
+        },
+        {
+          name: 'Instagram Official',
+          handle: '@rofiialawi',
+          icon: 'fab fa-instagram',
+          color: 'linear-gradient(45deg, #f09433 0%, #dc2743 50%, #bc1888 100%)',
+          link: 'https://www.instagram.com/rofiialawi?igsh=Z2ZqYm5naWo2N3ly'
+        },
+        {
+          name: 'Instagram Desain',
+          handle: '@rofi_editz',
+          icon: 'fab fa-instagram',
+          color: 'linear-gradient(45deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)',
+          link: 'https://www.instagram.com/rofi_editz?igsh=MXIydXl6N3Q2cGNz'
+        }
+      ];
 
   return (
     <section id="media-sosial" style={{ padding: '4.5rem 0' }}>
       <div className="app-container">
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <span className="hero-badge" style={{ color: 'var(--rd-primary)', backgroundColor: 'var(--rd-primary-light)' }}>
+          <span className="hero-badge" style={{ color: 'var(--dr-primary)', backgroundColor: 'var(--dr-primary-light)' }}>
             <i className="fas fa-share-alt"></i> Terhubung Bersama Kami
           </span>
           <h2 style={{ fontSize: '2.35rem', fontWeight: '900', marginTop: '0.5rem', color: 'var(--dark)' }}>
-            Ikuti Media Sosial <span className="rd-text">Rofi Store</span>
+            Ikuti Media Sosial <span className="dr-text">{isDapurMode ? 'Dapur Rofi' : 'Rofi Store'}</span>
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '580px', margin: '0.5rem auto 0' }}>
-            Dapatkan update menu terbaru Dapur Rofi dan inspirasi desain kreatif dari Rofi Design setiap hari.
+            {isDapurMode
+              ? 'Dapatkan update menu manis dan promo menarik Dapur Rofi setiap hari!'
+              : 'Dapatkan update menu terbaru Dapur Rofi dan inspirasi desain kreatif dari Rofi Design.'}
           </p>
         </div>
 
-        {/* Social Grid - Exactly 3 Platforms */}
-        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.75rem', maxWidth: '960px', margin: '0 auto' }}>
+        {/* Social Grid */}
+        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.75rem', maxWidth: '960px', margin: '0 auto' }}>
           {socials.map((social) => (
             <a
               key={social.name}

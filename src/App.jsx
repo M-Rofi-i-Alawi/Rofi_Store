@@ -27,8 +27,21 @@ function AppContent() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          
+          {/* Dapur Rofi Routes & Aliases */}
           <Route path="/dapur-rofi" element={<DapurRofi />} />
+          <Route path="/dapur rofi" element={<DapurRofi />} />
+          <Route path="/dapur_rofi" element={<DapurRofi />} />
+          <Route path="/dapur" element={<DapurRofi />} />
+
+          {/* Rofi Design Routes & Aliases */}
           <Route path="/rofi-design" element={<RofiDesign />} />
+          <Route path="/rofi design" element={<RofiDesign />} />
+          <Route path="/rofi_design" element={<RofiDesign />} />
+          <Route path="/design" element={<RofiDesign />} />
+
+          {/* Fallback to Home */}
+          <Route path="*" element={<Home />} />
         </Routes>
       </main>
       <Footer />

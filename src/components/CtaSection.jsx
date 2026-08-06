@@ -1,8 +1,14 @@
 import { MERCHANT_WA_NUMBER } from '../data/menuData';
+import { useFocusMode } from '../context/FocusModeContext';
 
 export default function CtaSection() {
+  const { isFokus, fokusBrand } = useFocusMode();
+  const isDapurMode = isFokus && fokusBrand === 'dapur';
+
   const handleWA = () => {
-    const msg = `Halo Rofi Store! 💬\n\nSaya ingin berkonsultasi mengenai pesanan makanan Dapur Rofi / jasa Rofi Design. Mohon bantuannya ya kak! 🙏`;
+    const msg = isDapurMode
+      ? `Halo Dapur Rofi! 💬\n\nSaya ingin memesan Dessert Ubi Ungu (Rp 6.000). Mohon informasinya ya kak! 🙏`
+      : `Halo Rofi Store! 💬\n\nSaya ingin berkonsultasi mengenai pesanan makanan Dapur Rofi / jasa Rofi Design. Mohon bantuannya ya kak! 🙏`;
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -48,7 +54,7 @@ export default function CtaSection() {
             width: '220px',
             height: '220px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(255, 143, 0, 0.3) 0%, transparent 70%)',
             pointerEvents: 'none'
           }} />
 
@@ -58,7 +64,7 @@ export default function CtaSection() {
               alignItems: 'center',
               gap: '6px',
               backgroundColor: 'rgba(255, 255, 255, 0.12)',
-              color: '#38BDF8',
+              color: '#FF8F00',
               padding: '6px 16px',
               borderRadius: '9999px',
               fontSize: '0.85rem',
@@ -70,11 +76,13 @@ export default function CtaSection() {
             </span>
 
             <h2 style={{ fontSize: '2.75rem', fontWeight: '900', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-              Masih Bingung?
+              Mau Pesan Langsung?
             </h2>
 
             <p style={{ fontSize: '1.1rem', color: '#94A3B8', marginBottom: '2.25rem', lineHeight: '1.6' }}>
-              Konsultasikan kebutuhanmu sekarang melalui <strong>WhatsApp</strong> atau pilih <strong>DM Instagram</strong> (Akun Official Pribadi atau Rofi Design):
+              {isDapurMode
+                ? 'Pesan Dessert Ubi Ungu favoritmu sekarang via WhatsApp atau hubungi Instagram Official kami!'
+                : 'Konsultasikan kebutuhanmu sekarang melalui WhatsApp atau pilih DM Instagram Official & Rofi Design.'}
             </p>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -94,7 +102,7 @@ export default function CtaSection() {
                 <i className="fab fa-whatsapp" style={{ fontSize: '1.15rem' }}></i> Chat via WhatsApp
               </button>
 
-              {/* Official / Pribadi IG DM Button */}
+              {/* Official IG DM Button */}
               <button
                 onClick={handleIGOfficial}
                 className="btn-hero-primary"
@@ -110,21 +118,23 @@ export default function CtaSection() {
                 <i className="fab fa-instagram" style={{ fontSize: '1.15rem' }}></i> DM IG Official (@rofiialawi)
               </button>
 
-              {/* Rofi Design IG DM Button */}
-              <button
-                onClick={handleIGDesign}
-                className="btn-hero-primary"
-                style={{
-                  background: 'linear-gradient(135deg, var(--rd-primary), var(--rd-secondary))',
-                  color: '#FFFFFF',
-                  fontSize: '0.925rem',
-                  padding: '0.85rem 1.6rem',
-                  borderRadius: '9999px',
-                  boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)'
-                }}
-              >
-                <i className="fab fa-instagram" style={{ fontSize: '1.15rem' }}></i> DM IG Rofi Design (@rofi_editz)
-              </button>
+              {/* Show Rofi Design IG DM Button ONLY in normal mode */}
+              {!isDapurMode && (
+                <button
+                  onClick={handleIGDesign}
+                  className="btn-hero-primary"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--rd-primary), var(--rd-secondary))',
+                    color: '#FFFFFF',
+                    fontSize: '0.925rem',
+                    padding: '0.85rem 1.6rem',
+                    borderRadius: '9999px',
+                    boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)'
+                  }}
+                >
+                  <i className="fab fa-instagram" style={{ fontSize: '1.15rem' }}></i> DM IG Rofi Design (@rofi_editz)
+                </button>
+              )}
             </div>
           </div>
         </div>

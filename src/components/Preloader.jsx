@@ -7,44 +7,13 @@ export default function Preloader() {
   const { isFokus, fokusBrand } = useFocusMode();
 
   useEffect(() => {
-    let minTimePassed = false;
-    let windowLoaded = document.readyState === 'complete';
+    // 1-second splash animation timer for instant, reliable loading
+    const timer = setTimeout(() => {
+      setFadeOut(true);
+      setTimeout(() => setLoading(false), 500); // match CSS fade-out duration
+    }, 1000);
 
-    const triggerExit = () => {
-      if (minTimePassed && windowLoaded) {
-        setFadeOut(true);
-        setTimeout(() => setLoading(false), 600); // smooth CSS fade-out transition
-      }
-    };
-
-    // Minimum animation time for smooth visual experience (1.2s)
-    const minTimer = setTimeout(() => {
-      minTimePassed = true;
-      triggerExit();
-    }, 1200);
-
-    // Event listener for real network asset loading
-    const handleLoad = () => {
-      windowLoaded = true;
-      triggerExit();
-    };
-
-    if (!windowLoaded) {
-      window.addEventListener('load', handleLoad);
-    }
-
-    // Safety fallback timer for slow connection (max 3.5s)
-    const maxTimer = setTimeout(() => {
-      windowLoaded = true;
-      minTimePassed = true;
-      triggerExit();
-    }, 3500);
-
-    return () => {
-      clearTimeout(minTimer);
-      clearTimeout(maxTimer);
-      window.removeEventListener('load', handleLoad);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   if (!loading) return null;
@@ -67,7 +36,7 @@ export default function Preloader() {
         alignItems: 'center',
         justifyContent: 'center',
         opacity: fadeOut ? 0 : 1,
-        transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         pointerEvents: fadeOut ? 'none' : 'auto'
       }}
     >
@@ -81,7 +50,7 @@ export default function Preloader() {
           background: isDapurFokus
             ? 'radial-gradient(circle, rgba(230, 74, 25, 0.35) 0%, transparent 70%)'
             : 'radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, transparent 70%)',
-          animation: 'splashPulse 2s infinite ease-in-out',
+          animation: 'splashPulse 1.8s infinite ease-in-out',
           pointerEvents: 'none'
         }}
       />
@@ -106,7 +75,7 @@ export default function Preloader() {
             boxShadow: isDapurFokus
               ? '0 16px 40px rgba(230, 74, 25, 0.45)'
               : '0 16px 40px rgba(99, 102, 241, 0.45)',
-            animation: 'splashScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+            animation: 'splashScale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
           }}
         >
           <i className={`fas ${isDapurFokus ? 'fa-utensils' : 'fa-store'}`}></i>
@@ -120,7 +89,7 @@ export default function Preloader() {
             letterSpacing: '-0.02em',
             marginBottom: '0.4rem',
             color: '#FFFFFF',
-            animation: 'splashFadeUp 0.9s ease forwards'
+            animation: 'splashFadeUp 0.8s ease forwards'
           }}
         >
           {isDapurFokus ? (
@@ -143,10 +112,10 @@ export default function Preloader() {
             letterSpacing: '0.04em',
             marginBottom: '2rem',
             textTransform: 'uppercase',
-            animation: 'splashFadeUp 1.1s ease forwards'
+            animation: 'splashFadeUp 0.9s ease forwards'
           }}
         >
-          {isDapurFokus ? 'Kuliner Otentik & Lezat' : 'Kuliner & Desain Grafis'}
+          {isDapurFokus ? 'Dessert Ubi Ungu' : 'Kuliner & Desain Grafis'}
         </p>
 
         {/* Loading Progress Bar Indicator */}
@@ -168,7 +137,7 @@ export default function Preloader() {
                 ? 'linear-gradient(90deg, #E64A19, #FF8F00)'
                 : 'linear-gradient(90deg, #6366F1, #E64A19)',
               borderRadius: '9999px',
-              animation: 'splashProgress 1.7s cubic-bezier(0.4, 0, 0.2, 1) infinite'
+              animation: 'splashProgress 1s cubic-bezier(0.4, 0, 0.2, 1) forwards'
             }}
           />
         </div>

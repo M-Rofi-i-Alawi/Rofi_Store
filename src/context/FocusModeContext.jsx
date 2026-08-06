@@ -8,10 +8,12 @@ export function FocusModeProvider({ children }) {
   const searchParams = new URLSearchParams(location.search);
   const isFokus = searchParams.get('mode') === 'fokus';
 
+  const path = decodeURIComponent(location.pathname).toLowerCase();
+
   // Detect which brand is in focus
-  const fokusBrand = isFokus && location.pathname.includes('dapur-rofi')
+  const fokusBrand = isFokus && path.includes('dapur')
     ? 'dapur'
-    : isFokus && location.pathname.includes('rofi-design')
+    : isFokus && path.includes('design')
       ? 'design'
       : null;
 
