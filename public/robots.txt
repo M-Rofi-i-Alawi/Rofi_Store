@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /dapur-rofi
+Allow: /rofi-design
+
+Sitemap: https://rofistore.com/sitemap.xml
