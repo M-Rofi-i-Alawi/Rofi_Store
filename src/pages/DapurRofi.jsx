@@ -9,6 +9,9 @@ import CtaSection from '../components/CtaSection';
 export default function DapurRofi() {
   const { isFokus } = useFocusMode();
 
+  // Secret Admin mode flag (Only active if URL has ?admin=true)
+  const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+
   useEffect(() => {
     if (isFokus) {
       document.title = 'Dapur Rofi | Dessert Ubi Ungu';
@@ -25,10 +28,10 @@ export default function DapurRofi() {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return { 1: 20, 2: 10 };
+        return { 1: menuItems[0].stock, 2: menuItems[1].stock };
       }
     }
-    return { 1: 20, 2: 10 };
+    return { 1: menuItems[0].stock, 2: menuItems[1].stock };
   });
 
   useEffect(() => {
@@ -49,7 +52,7 @@ export default function DapurRofi() {
     setTimeout(() => setToast({ show: false, message: '' }), 3500);
   };
 
-  // Admin Stock Manager Function (Quick Restock)
+  // Admin Stock Manager Function (Only accessible in Admin mode)
   const handleRestockAdmin = (item) => {
     const current = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
     const input = prompt(`[Admin Dapur Rofi]\n\nMasukkan jumlah stok baru untuk ${item.name}:`, current.toString());
@@ -68,7 +71,7 @@ export default function DapurRofi() {
   };
 
   const addToCart = (item) => {
-    const currentStock = stocks[item.id] || 0;
+    const currentStock = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
     if (currentStock <= 0) {
       return alert(`Maaf, stok ${item.name} saat ini sudah habis (Sold Out)!`);
     }
@@ -93,7 +96,7 @@ export default function DapurRofi() {
       const existing = prev.find(c => c.id === id);
       if (!existing) return prev;
 
-      const currentStock = stocks[id] || 0;
+      const currentStock = stocks[id] !== undefined ? stocks[id] : 0;
       const newQty = existing.qty + change;
       if (newQty > currentStock) {
         alert(`Maaf, stok hanya tersisa ${currentStock} Pcs!`);
@@ -115,7 +118,7 @@ export default function DapurRofi() {
 
     // Check stock for each item in cart
     for (const item of cart) {
-      const available = stocks[item.id] || 0;
+      const available = stocks[item.id] !== undefined ? stocks[item.id] : item.stock;
       if (item.qty > available) {
         return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${available} Pcs.`);
       }
@@ -145,7 +148,8 @@ export default function DapurRofi() {
     setStocks(prev => {
       const next = { ...prev };
       cart.forEach(item => {
-        next[item.id] = Math.max(0, (next[item.id] || 0) - item.qty);
+        const cur = next[item.id] !== undefined ? next[item.id] : item.stock;
+        next[item.id] = Math.max(0, cur - item.qty);
       });
       return next;
     });
@@ -262,7 +266,7 @@ export default function DapurRofi() {
                       {item.desc}
                     </p>
 
-                    {/* Stock info badge & Admin edit button */}
+                    {/* Stock info badge (Read-only for customers) */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
@@ -271,23 +275,25 @@ export default function DapurRofi() {
                         </span>
                       </div>
 
-                      {/* Secret Admin Restok Button */}
-                      <button
-                        onClick={() => handleRestockAdmin(item)}
-                        title="Klik untuk mengisi ulang stok porsi"
-                        style={{
-                          background: 'rgba(230, 74, 25, 0.12)',
-                          border: 'none',
-                          color: 'var(--dr-primary)',
-                          borderRadius: '8px',
-                          padding: '4px 8px',
-                          fontSize: '0.75rem',
-                          fontWeight: '800',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        ✏️ Isi Stok
-                      </button>
+                      {/* Secret Admin Button ONLY visible if ?admin=true is in URL */}
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleRestockAdmin(item)}
+                          title="Klik untuk mengisi ulang stok porsi (Khusus Pemilik)"
+                          style={{
+                            background: 'rgba(230, 74, 25, 0.12)',
+                            border: 'none',
+                            color: 'var(--dr-primary)',
+                            borderRadius: '8px',
+                            padding: '4px 8px',
+                            fontSize: '0.75rem',
+                            fontWeight: '800',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          ✏️ Restok (Admin)
+                        </button>
+                      )}
                     </div>
 
                     <button
