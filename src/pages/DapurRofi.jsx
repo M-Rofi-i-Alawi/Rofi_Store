@@ -18,6 +18,29 @@ export default function DapurRofi() {
     };
   }, [isFokus]);
 
+  // Live session deductions state (Updates stock count immediately when customer orders)
+  const [sessionDeductions, setSessionDeductions] = useState(() => {
+    const saved = localStorage.getItem('rofi_session_deductions_v3');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rofi_session_deductions_v3', JSON.stringify(sessionDeductions));
+  }, [sessionDeductions]);
+
+  // Helper: Live stock = base menuData.js stock minus completed session orders
+  const getItemStock = (item) => {
+    const deducted = sessionDeductions[item.id] || 0;
+    return Math.max(0, item.stock - deducted);
+  };
+
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
@@ -33,13 +56,14 @@ export default function DapurRofi() {
   };
 
   const addToCart = (item) => {
-    if (item.stock <= 0) {
+    const liveStock = getItemStock(item);
+    if (liveStock <= 0) {
       return alert(`Maaf, stok ${item.name} saat ini sudah habis (Sold Out)!`);
     }
 
     const currentQtyInCart = cart.find(c => c.id === item.id)?.qty || 0;
-    if (currentQtyInCart + 1 > item.stock) {
-      return alert(`Maaf, stok ${item.name} hanya tersisa ${item.stock} Pcs!`);
+    if (currentQtyInCart + 1 > liveStock) {
+      return alert(`Maaf, sisa stok ${item.name} hanya tersisa ${liveStock} Pcs!`);
     }
 
     setCart(prev => {
@@ -58,10 +82,10 @@ export default function DapurRofi() {
       const existing = prev.find(c => c.id === id);
       if (!existing) return prev;
 
-      const currentStock = item ? item.stock : 0;
+      const liveStock = item ? getItemStock(item) : 0;
       const newQty = existing.qty + change;
-      if (newQty > currentStock) {
-        alert(`Maaf, stok hanya tersisa ${currentStock} Pcs!`);
+      if (newQty > liveStock) {
+        alert(`Maaf, stok hanya tersisa ${liveStock} Pcs!`);
         return prev;
       }
 
@@ -80,8 +104,9 @@ export default function DapurRofi() {
 
     // Check stock for each item in cart
     for (const item of cart) {
-      if (item.qty > item.stock) {
-        return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${item.stock} Pcs.`);
+      const liveStock = getItemStock(item);
+      if (item.qty > liveStock) {
+        return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${liveStock} Pcs.`);
       }
     }
 
@@ -105,9 +130,18 @@ export default function DapurRofi() {
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
+    // Deduct stock instantly upon order checkout
+    setSessionDeductions(prev => {
+      const next = { ...prev };
+      cart.forEach(item => {
+        next[item.id] = (next[item.id] || 0) + item.qty;
+      });
+      return next;
+    });
+
     setCart([]);
     setShowCart(false);
-    triggerToast('Pesanan terkirim via WhatsApp!');
+    triggerToast('Pesanan terkirim via WhatsApp! Stok di layar telah berkurang.');
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -181,60 +215,64 @@ export default function DapurRofi() {
 
           {/* Product Grid (2 Variants: Mini 3K & Medium 6K) */}
           <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-            {menuItems.map((item) => (
-              <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ position: 'relative', height: '240px' }}>
-                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
-                    {item.badge}
-                  </span>
-                  <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="fas fa-star"></i> {item.rating}
-                  </span>
-                </div>
+            {menuItems.map((item) => {
+              const liveStock = getItemStock(item);
 
-                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
-                      {item.name}
-                    </h3>
-                    <div>
-                      <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
-                        Rp {item.price.toLocaleString('id-ID')}
-                      </span>
-                      {item.oldPrice && (
-                        <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                          Rp {item.oldPrice.toLocaleString('id-ID')}
-                        </div>
-                      )}
-                    </div>
+              return (
+                <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ position: 'relative', height: '240px' }}>
+                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
+                      {item.badge}
+                    </span>
+                    <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="fas fa-star"></i> {item.rating}
+                    </span>
                   </div>
 
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.25rem', flexGrow: 1 }}>
-                    {item.desc}
-                  </p>
-
-                  {/* Stock info badge (Directly from menuData.js) */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '900', color: item.stock > 0 ? 'var(--dr-primary)' : '#EF4444' }}>
-                        {item.stock > 0 ? `${item.stock} Pcs` : 'Habis (Sold Out)'}
-                      </span>
+                  <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
+                        {item.name}
+                      </h3>
+                      <div>
+                        <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
+                          Rp {item.price.toLocaleString('id-ID')}
+                        </span>
+                        {item.oldPrice && (
+                          <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                            Rp {item.oldPrice.toLocaleString('id-ID')}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="btn-hero-primary btn-hero-dapur"
-                    disabled={item.stock <= 0}
-                    style={{ width: '100%', justifyContent: 'center', padding: '0.8rem 1.25rem', fontSize: '0.95rem', opacity: item.stock <= 0 ? 0.6 : 1 }}
-                  >
-                    <i className="fas fa-plus-circle"></i> {item.stock > 0 ? `Tambah (Rp ${item.price.toLocaleString('id-ID')})` : 'Stok Habis'}
-                  </button>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.25rem', flexGrow: 1 }}>
+                      {item.desc}
+                    </p>
+
+                    {/* Stock info badge (Decreases live upon ordering) */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '900', color: liveStock > 0 ? 'var(--dr-primary)' : '#EF4444' }}>
+                          {liveStock > 0 ? `${liveStock} Pcs` : 'Habis (Sold Out)'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="btn-hero-primary btn-hero-dapur"
+                      disabled={liveStock <= 0}
+                      style={{ width: '100%', justifyContent: 'center', padding: '0.8rem 1.25rem', fontSize: '0.95rem', opacity: liveStock <= 0 ? 0.6 : 1 }}
+                    >
+                      <i className="fas fa-plus-circle"></i> {liveStock > 0 ? `Tambah (Rp ${item.price.toLocaleString('id-ID')})` : 'Stok Habis'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* STAY TUNED BANNER FOR FUTURE PRODUCTS */}
