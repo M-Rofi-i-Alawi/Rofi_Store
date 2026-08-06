@@ -166,7 +166,7 @@ export default function DapurRofi() {
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const processCheckout = () => {
+  const processCheckout = async () => {
     if (cart.length === 0) return alert('Keranjang pesanan masih kosong!');
     if (!custName.trim()) return alert('Mohon isi Nama Pemesan terlebih dahulu!');
     if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
@@ -206,7 +206,8 @@ export default function DapurRofi() {
       updatedDeductions[item.id] = curDeduct + item.qty;
     });
 
-    syncDeductionsToCloud(updatedDeductions);
+    // Await cloud sync so mobile browsers finish sending the network payload!
+    await syncDeductionsToCloud(updatedDeductions);
 
     setCart([]);
     setShowCart(false);
