@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import designHero from '../assets/images/design_hero.png';
 import { designServices, designCategories, MERCHANT_WA_NUMBER } from '../data/designData';
 import PortfolioSection from '../components/PortfolioSection';
 import TestimoniSection from '../components/TestimoniSection';
@@ -70,7 +71,7 @@ export default function RofiDesign() {
             </div>
 
             <div className="hero-img-box">
-              <img src="/images/design_hero.png" alt="Rofi Design Studio" />
+              <img src={designHero} alt="Rofi Design Studio" />
             </div>
           </div>
         </div>

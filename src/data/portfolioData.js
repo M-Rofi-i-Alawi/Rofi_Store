@@ -1,10 +1,16 @@
+import posterDesign from '../assets/images/poster_design.png';
+import logoDesign from '../assets/images/logo_design.png';
+import bannerDesign from '../assets/images/banner_design.png';
+import instagramFeed from '../assets/images/instagram_feed.png';
+import photoEditing from '../assets/images/photo_editing.png';
+
 export const portfolioItems = [
   {
     id: 1,
     title: "Poster Event Music Fest 2026",
     category: "Poster",
     badge: "Event & Concert",
-    image: "/images/poster_design.png",
+    image: posterDesign,
     description: "Desain poster konser musik modern beresolusi tinggi dengan pemilihan warna kontras dan elemen visual typography yang bold.",
     client: "Festoria Event Organizer",
     tools: "Adobe Photoshop, Illustrator"
@@ -14,7 +20,7 @@ export const portfolioItems = [
     title: "Logo Brand Kopi Nusantara",
     category: "Logo",
     badge: "Branding",
-    image: "/images/logo_design.png",
+    image: logoDesign,
     description: "Identitas visual logo ikonik khas biji kopi Nusantara dengan sentuhan gaya minimalis & mewah untuk kedai kopi modern.",
     client: "Kopi Nusantara Co.",
     tools: "Adobe Illustrator, Vector"
@@ -24,7 +30,7 @@ export const portfolioItems = [
     title: "Banner Promo Spanduk Toko",
     category: "Banner",
     badge: "Print & Banner",
-    image: "/images/banner_design.png",
+    image: bannerDesign,
     description: "Desain spanduk toko dan banner promosi bisnis ritel dengan hirarki informasi yang sangat jelas dan siap cetak outdoor.",
     client: "Toko Berkah Utama",
     tools: "Adobe Photoshop, CorelDraw"
@@ -34,7 +40,7 @@ export const portfolioItems = [
     title: "Feed Instagram Carousel Aesthetic",
     category: "Feed Instagram",
     badge: "Social Media",
-    image: "/images/instagram_feed.png",
+    image: instagramFeed,
     description: "Grid & Carousel Feed Instagram bernuansa aesthetic untuk meningkatkan impresi akun jualan online dan profesionalitas brand.",
     client: "GlowSkin Beauty Care",
     tools: "Figma, Canva Pro"
@@ -44,7 +50,7 @@ export const portfolioItems = [
     title: "Editing Foto Retouching Produk",
     category: "Editing Foto",
     badge: "Photo Retouch",
-    image: "/images/photo_editing.png",
+    image: photoEditing,
     description: "Jasa edit foto produk e-commerce, pembersihan background (background removal), color correction, serta pencahayaan dramatis.",
     client: "Dapur Rofi Culinary",
     tools: "Lightroom, Photoshop"
@@ -54,7 +60,7 @@ export const portfolioItems = [
     title: "ID Card Karyawan & Member",
     category: "ID Card",
     badge: "Corporate Identity",
-    image: "/images/poster_design.png",
+    image: posterDesign,
     description: "Kartu identitas resmi perusahaan dan ID Card event dengan desain minimalis, barcode terintegrasi, dan warna elegan.",
     client: "PT Indo Karya Digital",
     tools: "Adobe Illustrator"
@@ -64,7 +70,7 @@ export const portfolioItems = [
     title: "Desain Sertifikat Workshop Nasional",
     category: "Sertifikat",
     badge: "Official Cert",
-    image: "/images/logo_design.png",
+    image: logoDesign,
     description: "Sertifikat resmi peserta dan pembicara workshop nasional lengkap dengan bingkai ornamen emas dan font sertifikat resmi.",
     client: "Akademi Digital Indonesia",
     tools: "Adobe Illustrator"

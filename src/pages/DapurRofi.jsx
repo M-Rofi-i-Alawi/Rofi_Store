@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import foodHero from '../assets/images/food_hero.png';
 import { menuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
 import { useFocusMode } from '../context/FocusModeContext';
 import ProdukPilihanSection from '../components/ProdukPilihanSection';
@@ -131,7 +132,7 @@ export default function DapurRofi() {
             </div>
 
             <div className="hero-img-box">
-              <img src="/images/food_hero.png" alt="Dapur Rofi Hero" />
+              <img src={foodHero} alt="Dapur Rofi Hero" />
             </div>
           </div>
         </div>

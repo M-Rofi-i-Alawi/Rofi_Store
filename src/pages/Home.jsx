@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import storeHero from '../assets/images/store_hero.png';
 import StatistikSection from '../components/StatistikSection';
 import ProdukPilihanSection from '../components/ProdukPilihanSection';
 import PortfolioSection from '../components/PortfolioSection';
@@ -54,7 +55,7 @@ export default function Home() {
             {/* Right Image Showcase */}
             <div className="hero-img-box">
               <img
-                src="/images/store_hero.png"
+                src={storeHero}
                 alt="Rofi Store Showcase"
                 style={{ width: '100%', borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }}
               />

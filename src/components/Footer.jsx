@@ -15,23 +15,16 @@ export default function Footer() {
         style={{
           backgroundColor: 'var(--footer-bg, #111827)',
           color: '#9CA3AF',
-          paddingTop: '4.5rem',
+          paddingTop: '4rem',
           paddingBottom: '2.5rem',
           borderTop: '1px solid var(--border-color)',
           transition: 'var(--transition)'
         }}
       >
         <div className="app-container">
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '2.5rem',
-              marginBottom: '3.5rem'
-            }}
-          >
+          <div className="footer-grid">
             {/* Kolom 1: Dapur Rofi Brand */}
-            <div style={{ gridColumn: 'span 2' }}>
+            <div className="footer-brand-col">
               <div className="brand-logo" style={{ marginBottom: '1rem', color: '#FFFFFF', cursor: 'default' }}>
                 <div className="brand-logo-icon" style={{ background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))' }}>
                   <i className="fas fa-utensils"></i>
@@ -43,7 +36,7 @@ export default function Footer() {
               <p style={{ fontSize: '0.9rem', lineHeight: '1.7', color: '#9CA3AF', maxWidth: '340px', marginBottom: '1.25rem' }}>
                 Sajian kuliner otentik dengan bumbu rempah pilihan. Lezat, higienis, dan siap menemani kehangatan santap keluarga Anda.
               </p>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', backgroundColor: 'rgba(230, 74, 25, 0.15)', color: 'var(--dr-primary)' }}>
                   Halal &amp; Higienis
                 </span>
@@ -53,9 +46,9 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Kolom 2: Navigasi (only section anchors) */}
+            {/* Kolom 2: Navigasi */}
             <div>
-              <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
                 Navigasi
               </h4>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.9rem' }}>
@@ -84,7 +77,7 @@ export default function Footer() {
 
             {/* Kolom 3: Media Sosial */}
             <div>
-              <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
                 Media Sosial
               </h4>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
@@ -103,7 +96,7 @@ export default function Footer() {
 
             {/* Kolom 4: Kontak */}
             <div>
-              <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
                 Hubungi Kami
               </h4>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
@@ -172,7 +165,7 @@ export default function Footer() {
       style={{
         backgroundColor: 'var(--footer-bg, #111827)',
         color: '#9CA3AF',
-        paddingTop: '4.5rem',
+        paddingTop: '4rem',
         paddingBottom: '2.5rem',
         borderTop: '1px solid var(--border-color)',
         transition: 'var(--transition)'
@@ -180,16 +173,9 @@ export default function Footer() {
     >
       <div className="app-container">
         {/* Grid Layout */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '2.5rem',
-            marginBottom: '3.5rem'
-          }}
-        >
+        <div className="footer-grid">
           {/* Kolom 1: Logo & Deskripsi */}
-          <div style={{ gridColumn: 'span 2' }}>
+          <div className="footer-brand-col">
             <Link to="/" className="brand-logo" style={{ marginBottom: '1rem', color: '#FFFFFF' }}>
               <div className="brand-logo-icon">
                 <i className="fas fa-store"></i>
@@ -201,7 +187,7 @@ export default function Footer() {
             <p style={{ fontSize: '0.9rem', lineHeight: '1.7', color: '#9CA3AF', maxWidth: '340px', marginBottom: '1.25rem' }}>
               Platform terpadu penyedia sajian kuliner otentik dari <strong>Dapur Rofi</strong> dan jasa studio desain grafis profesional dari <strong>Rofi Design</strong>.
             </p>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', backgroundColor: 'rgba(230, 74, 25, 0.15)', color: 'var(--dr-primary)' }}>
                 Halal &amp; Higienis
               </span>
@@ -213,7 +199,7 @@ export default function Footer() {
 
           {/* Kolom 2: Navigasi */}
           <div>
-            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
               Navigasi Halaman
             </h4>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.9rem' }}>
@@ -247,7 +233,7 @@ export default function Footer() {
 
           {/* Kolom 3: Layanan */}
           <div>
-            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
               Layanan Utama
             </h4>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.9rem' }}>
@@ -261,7 +247,7 @@ export default function Footer() {
 
           {/* Kolom 4: Media Sosial */}
           <div>
-            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
               Media Sosial Resmi
             </h4>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
@@ -290,7 +276,7 @@ export default function Footer() {
 
           {/* Kolom 5: Kontak */}
           <div>
-            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#FFFFFF', marginBottom: '1rem', letterSpacing: '0.02em' }}>
               Hubungi Kami
             </h4>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
