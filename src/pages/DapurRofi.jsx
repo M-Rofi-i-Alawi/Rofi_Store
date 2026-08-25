@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { menuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
-import dessertUbiUngu from '../assets/images/dessert_ubi_ungu.png';
 import { useFocusMode } from '../context/FocusModeContext';
 import { supabase } from '../lib/supabase';
 import FAQSection from '../components/FAQSection';
@@ -226,12 +225,12 @@ export default function DapurRofi() {
               </div>
 
               <h1 className="hero-title">
-                Sajian Manis<br />
-                <span className="dr-text">Dessert Ubi Ungu</span>
+                Sajian Lezat<br />
+                <span className="dr-text">Dapur Rofi</span>
               </h1>
 
               <p className="hero-subtitle">
-                Dessert ubi ungu homemade lembut nan lumer dengan toping keju parut gurih melimpah. Diantar langsung saat jam istirahat atau pulang sekolah!
+                Cicos bumbu seblak pedas gurih & Dessert ubi ungu keju lumer homemade. Diantar langsung saat jam istirahat atau pulang sekolah!
               </p>
 
               <div className="hero-buttons">
@@ -259,7 +258,7 @@ export default function DapurRofi() {
             </div>
 
             <div className="hero-img-box">
-              <img src={menuItems[0]?.image || dessertUbiUngu} alt="Dessert Ubi Ungu Dapur Rofi" style={{ borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }} />
+              <img src={menuItems[0]?.image || '/images/cicos.jpeg'} alt="Dapur Rofi" style={{ borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }} />
             </div>
           </div>
         </div>
