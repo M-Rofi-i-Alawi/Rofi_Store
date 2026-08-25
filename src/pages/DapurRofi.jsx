@@ -163,25 +163,11 @@ export default function DapurRofi() {
               <i className="fas fa-cookie-bite"></i> Menu &amp; Varian Dapur Rofi
             </span>
             <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--dark)', marginTop: '0.5rem' }}>
-              Varian <span className="dr-text">Dessert Ubi Ungu</span>
+              Menu <span className="dr-text">Dapur Rofi</span>
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-              Pilih porsi favorit Anda! Siap antar di Smakzie LB.
+              Pilih menu favorit Anda! Siap antar di Smakzie LB.
             </p>
-
-            {isAdmin && (
-              <div style={{ margin: '1.5rem auto 0', padding: '1rem', background: '#FFF3CD', border: '1px solid #FFEBAA', borderRadius: '16px', textAlign: 'center', maxWidth: '500px' }}>
-                <p style={{ fontWeight: 'bold', color: '#856404', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                  ⚙️ Admin Mode (Database Supabase Active)
-                </p>
-                <button
-                  onClick={handleAdminReset}
-                  style={{ padding: '8px 16px', background: '#DC3545', color: '#FFF', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
-                >
-                  Reset Stok Database ke Initial (Mini: 4, Medium: 11)
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Product Grid / Empty State */}
