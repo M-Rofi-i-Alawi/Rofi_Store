@@ -8,7 +8,6 @@ export const menuItems = [
     rating: 5.0,
     badge: "Best Seller (5K)",
     badgeType: "promo",
-    stock: 20,
     image: "/images/cicos.jpeg",
     desc: "Cicos (Cireng Aci Goreng) renyah kriuk dengan bumbu seblak pedas gurih yang bikin nagih! Camilan favorit anak sekolah yang pas di kantong."
   },
@@ -21,7 +20,6 @@ export const menuItems = [
     rating: 5.0,
     badge: "Porsi Hemat (3K)",
     badgeType: "promo",
-    stock: 20,
     image: "/images/dessert_ubi_ungu.png",
     desc: "Dessert ubi ungu homemade lembut nan lumer di mulut dengan taburan keju parut gurih melimpah. Manis, creamy, dan bikin ketagihan!"
   }

@@ -19,70 +19,6 @@ export default function DapurRofi() {
     };
   }, [isFokus]);
 
-  // Real-time Supabase stock state (Maps product_id -> quantity)
-  const [dbStocks, setDbStocks] = useState({
-    1: 4,  // Default fallback Mini
-    2: 11  // Default fallback Medium
-  });
-
-  // Fetch initial stock from Supabase & subscribe to real-time changes across all devices
-  useEffect(() => {
-    const fetchStock = async () => {
-      try {
-        const { data, error } = await supabase.from('stock').select('*');
-        if (data && data.length > 0) {
-          const map = {};
-          data.forEach(row => {
-            map[row.product_id] = row.quantity;
-          });
-          setDbStocks(prev => ({ ...prev, ...map }));
-        }
-      } catch (err) {
-        console.warn('Supabase stock table fetch notice:', err);
-      }
-    };
-
-    fetchStock();
-
-    // Subscribe to Postgres changes for Realtime cross-device sync
-    const channel = supabase
-      .channel('public:stock')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock' }, (payload) => {
-        if (payload.new && payload.new.product_id !== undefined) {
-          setDbStocks(prev => ({
-            ...prev,
-            [payload.new.product_id]: payload.new.quantity
-          }));
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // Admin reset button (visible dengan ?admin=true di URL)
-  const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
-
-  const handleAdminReset = async () => {
-    if (confirm('Reset stok di database Supabase ke nilai awal (Mini: 4, Medium: 11)?')) {
-      try {
-        await supabase.from('stock').update({ quantity: 4 }).eq('product_id', 1);
-        await supabase.from('stock').update({ quantity: 11 }).eq('product_id', 2);
-        setDbStocks({ 1: 4, 2: 11 });
-        alert('Stok di Supabase berhasil di-reset!');
-      } catch (e) {
-        alert('Gagal reset stok di Supabase: ' + e.message);
-      }
-    }
-  };
-
-  // Helper: Live stock dari database Supabase
-  const getItemStock = (item) => {
-    return dbStocks[item.id] !== undefined ? dbStocks[item.id] : item.stock;
-  };
-
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
@@ -98,16 +34,6 @@ export default function DapurRofi() {
   };
 
   const addToCart = (item) => {
-    const liveStock = getItemStock(item);
-    if (liveStock <= 0) {
-      return alert(`Maaf, stok ${item.name} saat ini sudah habis (Sold Out)!`);
-    }
-
-    const currentQtyInCart = cart.find(c => c.id === item.id)?.qty || 0;
-    if (currentQtyInCart + 1 > liveStock) {
-      return alert(`Maaf, sisa stok ${item.name} hanya tersisa ${liveStock} Pcs!`);
-    }
-
     setCart(prev => {
       const existing = prev.find(c => c.id === item.id);
       if (existing) {
@@ -119,18 +45,10 @@ export default function DapurRofi() {
   };
 
   const updateQty = (id, change) => {
-    const item = menuItems.find(m => m.id === id);
     setCart(prev => {
       const existing = prev.find(c => c.id === id);
       if (!existing) return prev;
-
-      const liveStock = item ? getItemStock(item) : 0;
       const newQty = existing.qty + change;
-      if (newQty > liveStock) {
-        alert(`Maaf, stok hanya tersisa ${liveStock} Pcs!`);
-        return prev;
-      }
-
       const updated = prev.map(c => c.id === id ? { ...c, qty: newQty } : c);
       return updated.filter(c => c.qty > 0);
     });
@@ -143,14 +61,6 @@ export default function DapurRofi() {
     if (cart.length === 0) return alert('Keranjang pesanan masih kosong!');
     if (!custName.trim()) return alert('Mohon isi Nama Pemesan terlebih dahulu!');
     if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
-
-    // Check stock for each item in cart
-    for (const item of cart) {
-      const liveStock = getItemStock(item);
-      if (item.qty > liveStock) {
-        return alert(`Maaf, stok ${item.name} yang tersisa saat ini hanya ${liveStock} Pcs.`);
-      }
-    }
 
     const name = custName.trim();
     const kelas = custClass.trim();
@@ -172,25 +82,6 @@ export default function DapurRofi() {
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
     msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
 
-    // Deduct stock in Supabase database & local state instantly
-    cart.forEach(async (item) => {
-      const currentQty = getItemStock(item);
-      const newQty = Math.max(0, currentQty - item.qty);
-
-      // Local state update for instant UI feedback
-      setDbStocks(prev => ({ ...prev, [item.id]: newQty }));
-
-      // Supabase database update
-      try {
-        await supabase
-          .from('stock')
-          .update({ quantity: newQty })
-          .eq('product_id', item.id);
-      } catch (err) {
-        console.error('Gagal memperbarui stok di Supabase:', err);
-      }
-    });
-
     // Simpan data pesanan ke tabel 'orders' di Supabase (untuk admin dashboard)
     try {
       await supabase.from('orders').insert({
@@ -207,7 +98,7 @@ export default function DapurRofi() {
 
     setCart([]);
     setShowCart(false);
-    triggerToast('Pesanan terkirim via WhatsApp! Stok di layar telah berkurang.');
+    triggerToast('Pesanan terkirim via WhatsApp!');
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -304,10 +195,7 @@ export default function DapurRofi() {
             </div>
           ) : (
             <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-              {menuItems.map((item) => {
-              const liveStock = getItemStock(item);
-
-              return (
+              {menuItems.map((item) => (
                 <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ position: 'relative', height: '240px' }}>
                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -336,33 +224,21 @@ export default function DapurRofi() {
                       </div>
                     </div>
 
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.25rem', flexGrow: 1 }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.5rem', flexGrow: 1 }}>
                       {item.desc}
                     </p>
-
-                    {/* Stock info badge (Decreases live upon ordering) */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', backgroundColor: 'var(--dr-bg-alt)', marginBottom: '1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--dark)' }}>Stok Tersedia:</span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '900', color: liveStock > 0 ? 'var(--dr-primary)' : '#EF4444' }}>
-                          {liveStock > 0 ? `${liveStock} Pcs` : 'Habis (Sold Out)'}
-                        </span>
-                      </div>
-                    </div>
 
                     <button
                       onClick={() => addToCart(item)}
                       className="btn-hero-primary btn-hero-dapur"
-                      disabled={liveStock <= 0}
-                      style={{ width: '100%', justifyContent: 'center', padding: '0.8rem 1.25rem', fontSize: '0.95rem', opacity: liveStock <= 0 ? 0.6 : 1 }}
+                      style={{ width: '100%', justifyContent: 'center', padding: '0.85rem 1.25rem', fontSize: '0.95rem' }}
                     >
-                      <i className="fas fa-plus-circle"></i> {liveStock > 0 ? `Tambah (Rp ${item.price.toLocaleString('id-ID')})` : 'Stok Habis'}
+                      <i className="fas fa-plus-circle"></i> Pesan Sekarang
                     </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
           )}
 
           {/* STAY TUNED BANNER FOR FUTURE PRODUCTS */}
