@@ -66,21 +66,21 @@ export default function DapurRofi() {
     const kelas = custClass.trim();
     const payment = paymentMethod;
 
-    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍽️\n\n`;
-    msg += `👤 *Nama:* ${name}\n`;
-    msg += `🏫 *Kelas:* ${kelas}\n`;
-    msg += `💳 *Metode Pembayaran:* ${payment}\n`;
-    msg += `📍 *Lokasi Antar:* Smakzie Lokasi Bawah (LB)\n`;
-    msg += `⏰ *Waktu Antar:* Jam Istirahat / Pulang Sekolah\n\n`;
-    msg += `📝 *Rincian Pesanan:*\n`;
+    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!*\n\n`;
+    msg += `*Nama:* ${name}\n`;
+    msg += `*Kelas:* ${kelas}\n`;
+    msg += `*Metode Pembayaran:* ${payment}\n`;
+    msg += `*Lokasi Antar:* Smakzie Lokasi Bawah (LB)\n`;
+    msg += `*Waktu Antar:* Jam Istirahat / Pulang Sekolah\n\n`;
+    msg += `*Rincian Pesanan:*\n`;
     let total = 0;
     cart.forEach((item, i) => {
       const sub = item.price * item.qty;
       total += sub;
       msg += `${i + 1}. ${item.name} (${item.qty}x) = Rp ${sub.toLocaleString('id-ID')}\n`;
     });
-    msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
-    msg += `\nDitunggu pesanan aku ya kang rofi, terima kasih! 🙏`;
+    msg += `\n*Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
+    msg += `\nDitunggu pesanan aku ya kang rofi, terima kasih!`;
 
     // Simpan data pesanan ke tabel 'orders' di Supabase (untuk admin dashboard)
     try {

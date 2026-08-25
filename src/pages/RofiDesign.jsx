@@ -17,7 +17,7 @@ export default function RofiDesign() {
     : designServices.filter(s => s.category === activeFilter);
 
   const orderViaWA = (service) => {
-    const msg = `Halo Rofi Design! 🎨\n\nSaya tertarik untuk memesan / konsultasi *${service.name}*.\n\n💰 Harga: Rp ${service.price.toLocaleString('id-ID')}\n⏱️ Estimasi: ${service.estimasi}\n\nMohon informasi lebih lanjut ya kak! 🙏`;
+    const msg = `Halo Rofi Design!\n\nSaya tertarik untuk memesan / konsultasi *${service.name}*.\n\nHarga: Rp ${service.price.toLocaleString('id-ID')}\nEstimasi: ${service.estimasi}\n\nMohon informasi lebih lanjut ya kang Rofi, terima kasih!`;
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 

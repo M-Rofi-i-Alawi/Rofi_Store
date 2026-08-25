@@ -15,15 +15,15 @@ export default function ProductDetailModal({ item, onClose }) {
     if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
 
     const totalPrice = item.price * qty;
-    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍧\n\n`;
-    msg += `👤 *Nama:* ${custName.trim()}\n`;
-    msg += `🏫 *Kelas:* ${custClass.trim()}\n`;
-    msg += `💳 *Metode Pembayaran:* ${paymentMethod}\n\n`;
-    msg += `📝 *Rincian Pesanan:*\n`;
+    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!*\n\n`;
+    msg += `*Nama:* ${custName.trim()}\n`;
+    msg += `*Kelas:* ${custClass.trim()}\n`;
+    msg += `*Metode Pembayaran:* ${paymentMethod}\n\n`;
+    msg += `*Rincian Pesanan:*\n`;
     msg += `1. ${item.name} (${qty}x) = Rp ${totalPrice.toLocaleString('id-ID')}\n\n`;
-    msg += `💰 *Total Pembayaran:* Rp ${totalPrice.toLocaleString('id-ID')}\n`;
-    if (notes.trim()) msg += `💬 *Catatan:* ${notes.trim()}\n`;
-    msg += `\nDitunggu pesanan aku ya kang rofi, terima kasih! 🙏`;
+    msg += `*Total Pembayaran:* Rp ${totalPrice.toLocaleString('id-ID')}\n`;
+    if (notes.trim()) msg += `*Catatan:* ${notes.trim()}\n`;
+    msg += `\nDitunggu pesanan aku ya kang rofi, terima kasih!`;
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };

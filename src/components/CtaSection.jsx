@@ -7,8 +7,8 @@ export default function CtaSection() {
 
   const handleWA = () => {
     const msg = isDapurMode
-      ? `Halo Dapur Rofi! 💬\n\nSaya ingin memesan Dessert Ubi Ungu (Rp 6.000). Mohon informasinya ya kak! 🙏`
-      : `Halo Rofi Store! 💬\n\nSaya ingin berkonsultasi mengenai pesanan makanan Dapur Rofi / jasa Rofi Design. Mohon bantuannya ya kak! 🙏`;
+      ? `Halo Dapur Rofi!\n\nSaya ingin memesan Dessert Ubi Ungu (Rp 3.000). Mohon informasinya ya kang Rofi, terima kasih!`
+      : `Halo Rofi Store!\n\nSaya ingin berkonsultasi mengenai pesanan makanan Dapur Rofi / jasa Rofi Design. Mohon bantuannya ya kang Rofi, terima kasih!`;
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
