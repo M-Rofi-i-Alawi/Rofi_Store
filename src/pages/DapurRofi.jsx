@@ -66,7 +66,7 @@ export default function DapurRofi() {
     const kelas = custClass.trim();
     const payment = paymentMethod;
 
-    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍧\n\n`;
+    let msg = `*HALO DAPUR ROFI, SAYA INGIN MEMESAN!* 🍽️\n\n`;
     msg += `👤 *Nama:* ${name}\n`;
     msg += `🏫 *Kelas:* ${kelas}\n`;
     msg += `💳 *Metode Pembayaran:* ${payment}\n`;
@@ -80,7 +80,7 @@ export default function DapurRofi() {
       msg += `${i + 1}. ${item.name} (${item.qty}x) = Rp ${sub.toLocaleString('id-ID')}\n`;
     });
     msg += `\n💰 *Total Pembayaran:* Rp ${total.toLocaleString('id-ID')}\n`;
-    msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
+    msg += `\nDitunggu pesanan aku ya kang rofi, terima kasih! 🙏`;
 
     // Simpan data pesanan ke tabel 'orders' di Supabase (untuk admin dashboard)
     try {
@@ -129,7 +129,7 @@ export default function DapurRofi() {
                   onClick={() => document.getElementById('menu').scrollIntoView({ behavior: 'smooth' })}
                   className="btn-hero-primary btn-hero-dapur"
                 >
-                  <i className="fas fa-utensils"></i> Pilih Varian (3K &amp; 6K)
+                  <i className="fas fa-utensils"></i> Pilih Menu (3K &amp; 5K)
                 </button>
                 <a
                   href={`https://wa.me/${MERCHANT_WA_NUMBER}?text=Halo%20Dapur%20Rofi!%20Saya%20ingin%20memesan%20Dessert%20Ubi%20Ungu.`}

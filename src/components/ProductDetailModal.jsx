@@ -23,7 +23,7 @@ export default function ProductDetailModal({ item, onClose }) {
     msg += `1. ${item.name} (${qty}x) = Rp ${totalPrice.toLocaleString('id-ID')}\n\n`;
     msg += `💰 *Total Pembayaran:* Rp ${totalPrice.toLocaleString('id-ID')}\n`;
     if (notes.trim()) msg += `💬 *Catatan:* ${notes.trim()}\n`;
-    msg += `\nMohon diproses ya kak, terima kasih! 🙏`;
+    msg += `\nDitunggu pesanan aku ya kang rofi, terima kasih! 🙏`;
 
     window.open(`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   };
