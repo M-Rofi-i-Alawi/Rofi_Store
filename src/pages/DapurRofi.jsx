@@ -140,7 +140,7 @@ export default function DapurRofi() {
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const processCheckout = () => {
+  const processCheckout = async () => {
     if (cart.length === 0) return alert('Keranjang pesanan masih kosong!');
     if (!custName.trim()) return alert('Mohon isi Nama Pemesan terlebih dahulu!');
     if (!custClass.trim()) return alert('Mohon isi Kelas Anda terlebih dahulu!');
@@ -191,6 +191,20 @@ export default function DapurRofi() {
         console.error('Gagal memperbarui stok di Supabase:', err);
       }
     });
+
+    // Simpan data pesanan ke tabel 'orders' di Supabase (untuk admin dashboard)
+    try {
+      await supabase.from('orders').insert({
+        customer_name: name,
+        customer_class: kelas,
+        payment_method: payment,
+        items: cart.map(item => ({ name: item.name, qty: item.qty, price: item.price })),
+        total_amount: total,
+        status: 'pending'
+      });
+    } catch (err) {
+      console.error('Gagal menyimpan pesanan ke Supabase:', err);
+    }
 
     setCart([]);
     setShowCart(false);

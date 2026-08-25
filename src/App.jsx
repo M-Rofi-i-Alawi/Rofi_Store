@@ -9,6 +9,8 @@ import WhatsAppFloat from './components/WhatsAppFloat';
 import Home from './pages/Home';
 import DapurRofi from './pages/DapurRofi';
 import RofiDesign from './pages/RofiDesign';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -19,6 +21,19 @@ function ScrollToTop() {
 }
 
 function AppContent() {
+  const { pathname } = useLocation();
+  const isAdminPage = pathname.startsWith('/admin');
+
+  // Halaman admin tampil tanpa Navbar, Footer, WhatsApp Float
+  if (isAdminPage) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      </Routes>
+    );
+  }
+
   return (
     <FocusModeProvider>
       <Preloader />
@@ -61,3 +76,4 @@ function App() {
 }
 
 export default App;
+
