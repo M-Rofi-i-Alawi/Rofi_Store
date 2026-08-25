@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { menuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
+import dessertUbiUngu from '../assets/images/dessert_ubi_ungu.png';
 import { useFocusMode } from '../context/FocusModeContext';
 import { supabase } from '../lib/supabase';
 import FAQSection from '../components/FAQSection';
@@ -244,7 +245,7 @@ export default function DapurRofi() {
             </div>
 
             <div className="hero-img-box">
-              <img src={menuItems[0].image} alt="Dessert Ubi Ungu Dapur Rofi" style={{ borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }} />
+              <img src={menuItems[0]?.image || dessertUbiUngu} alt="Dessert Ubi Ungu Dapur Rofi" style={{ borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }} />
             </div>
           </div>
         </div>
@@ -261,7 +262,7 @@ export default function DapurRofi() {
               Varian <span className="dr-text">Dessert Ubi Ungu</span>
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-              Pilih porsi favorit Anda! Tersedia varian Mini (3K) &amp; Medium (6K) siap antar di Smakzie LB.
+              Pilih porsi favorit Anda! Siap antar di Smakzie LB.
             </p>
 
             {isAdmin && (
@@ -279,9 +280,18 @@ export default function DapurRofi() {
             )}
           </div>
 
-          {/* Product Grid (2 Variants: Mini 3K & Medium 6K) */}
-          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-            {menuItems.map((item) => {
+          {/* Product Grid / Empty State */}
+          {menuItems.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1px dashed var(--border-color)', maxWidth: '600px', margin: '0 auto' }}>
+              <i className="fas fa-box-open" style={{ fontSize: '3.5rem', color: 'var(--dr-primary)', marginBottom: '1.25rem' }}></i>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '0.5rem' }}>Belum Ada Produk Dapur Rofi</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                Semua produk Dapur Rofi saat ini belum tersedia atau sedang dalam pembaruan menu. Silakan periksa kembali nanti!
+              </p>
+            </div>
+          ) : (
+            <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
+              {menuItems.map((item) => {
               const liveStock = getItemStock(item);
 
               return (
@@ -340,6 +350,7 @@ export default function DapurRofi() {
               );
             })}
           </div>
+          )}
 
           {/* STAY TUNED BANNER FOR FUTURE PRODUCTS */}
           <div
