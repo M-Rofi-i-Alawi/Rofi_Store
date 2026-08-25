@@ -12,7 +12,7 @@ export default function DapurRofi() {
 
   useEffect(() => {
     if (isFokus) {
-      document.title = 'Dapur Rofi | Dessert Ubi Ungu';
+      document.title = 'Dapur Rofi | Kuliner Lezat Smakzie LB';
     }
     return () => {
       document.title = 'Rofi Store | Kuliner & Desain Grafis';

@@ -106,16 +106,15 @@ export default function Preloader() {
         {/* Subtitle */}
         <p
           style={{
-            fontSize: '0.95rem',
+            fontSize: '0.9rem',
             color: '#94A3B8',
             fontWeight: '600',
-            letterSpacing: '0.04em',
+            letterSpacing: '0.05em',
             marginBottom: '2rem',
-            textTransform: 'uppercase',
             animation: 'splashFadeUp 0.9s ease forwards'
           }}
         >
-          {isDapurFokus ? 'Dessert Ubi Ungu' : 'Kuliner & Desain Grafis'}
+          {isDapurFokus ? 'Sedang Menyiapkan Menu...' : 'Sedang Memuat Halaman...'}
         </p>
 
         {/* Loading Progress Bar Indicator */}
