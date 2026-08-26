@@ -6,6 +6,7 @@ import FAQSection from '../components/FAQSection';
 import ContactSection from '../components/ContactSection';
 import MediaSosialSection from '../components/MediaSosialSection';
 import CtaSection from '../components/CtaSection';
+import TestimoniSection from '../components/TestimoniSection';
 
 export default function DapurRofi() {
   const { isFokus } = useFocusMode();
@@ -273,6 +274,9 @@ export default function DapurRofi() {
           </div>
         </div>
       </section>
+
+      {/* =============== ULASAN & RATING =============== */}
+      <TestimoniSection />
 
       {/* =============== FAQ =============== */}
       <FAQSection />
