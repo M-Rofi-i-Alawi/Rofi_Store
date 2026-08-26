@@ -3,20 +3,24 @@ import { useFocusMode } from '../context/FocusModeContext';
 
 const dapurFaqData = [
   {
-    q: "Bagaimana cara memesan Dessert Ubi Ungu di Dapur Rofi?",
-    a: "PILIH varian Dessert Ubi Ungu (Mini 3K atau Medium 6K), isi Nama Pemesan & Kelas Anda, pilih Metode Pembayaran (QRIS atau Cash), lalu klik tombol 'Kirim Pesanan via WhatsApp'."
+    q: "Kenapa pesanan hanya diantar di Smakzie LB (Lokasi Bawah) dan tidak bisa di LA (Lokasi Atas)?",
+    a: "Pengantaran hanya dilakukan di Smakzie Lokasi Bawah (LB) karena Kang Rofi merupakan siswa kelas 12 yang kegiatan belajarnya bertempat di LB, bukan di LA. Hal ini agar makanan bisa diantar tepat waktu langsung ke kelas Anda."
   },
   {
-    q: "Dimana dan kapan pesanan saya akan diantar?",
-    a: "Pengiriman dilakukan khusus di area Smakzie Lokasi Bawah (LB) dan diantar langsung pada Jam Istirahat atau Jam Pulang Sekolah."
+    q: "Kapan pesanan diantar? Bagaimana jika tidak sempat diantar saat istirahat pertama?",
+    a: "Pesanan umumnya diantar saat jam istirahat atau jam pulang sekolah. Jika semisalnya tidak sempat diantar pada jam istirahat ke-1 karena jadwal atau kegiatan kelas, Kang Rofi akan langsung menginformasikan terlebih dahulu via chat WhatsApp kepada Anda."
+  },
+  {
+    q: "Bagaimana cara memesan makanan di Dapur Rofi?",
+    a: "Pilih menu yang Anda inginkan di web, masukkan ke keranjang, isi Nama dan Kelas Anda, lalu selesaikan pemesanan. Pesanan akan otomatis terkirim rapi ke WhatsApp Kang Rofi."
   },
   {
     q: "Metode pembayaran apa saja yang didukung?",
-    a: "Kami mendukung pembayaran melalui QRIS (Scan Barcode) dan Cash (Tunai saat pengantaran di Smakzie LB)."
+    a: "Kami menerima pembayaran melalui QRIS (bisa scan pakai semua e-wallet / mobile banking) serta Cash (bayar tunai saat makanan diantar ke kelas)."
   },
   {
-    q: "Apakah Dessert Ubi Ungu Dapur Rofi 100% Halal & Higienis?",
-    a: "Ya! Seluruh bahan ubi ungu pilihan, vla creamy, keju parut, dan proses pembuatan dijamin 100% Halal, higienis, dan tanpa bahan pengawet sintetik."
+    q: "Apakah makanan di Dapur Rofi higienis dan halal?",
+    a: "Ya! Seluruh produk makanan Dapur Rofi diolah secara higienis, homemade, dan dijamin 100% Halal tanpa bahan pengawet berbahaya."
   }
 ];
 
