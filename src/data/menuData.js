@@ -30,17 +30,17 @@ export const fridayMenuItems = [
   },
   {
     id: 3,
-    name: "Piscok (Pisang Cokelat Lumer)",
+    name: "Piscok",
     badge: "Hadir Hari Jumat",
     image: "/images/piscok.jpeg",
     desc: "Pisang berbalut kulit lumpia super renyah dengan isian cokelat lumer meleleh."
   },
   {
     id: 4,
-    name: "Piscok Matcha",
+    name: "Pisang Matcha",
     badge: "Hadir Hari Jumat",
     image: "/images/piscok matcha.jpeg",
-    desc: "Pisang cokelat renyah dengan aroma dan cita rasa manis green tea matcha yang khas."
+    desc: "Pisang renyah dengan aroma dan cita rasa manis green tea matcha yang khas."
   }
 ];
 

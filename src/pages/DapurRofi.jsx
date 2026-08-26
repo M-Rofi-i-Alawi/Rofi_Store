@@ -121,7 +121,7 @@ export default function DapurRofi() {
               </h1>
 
               <p className="hero-subtitle">
-                Spesial <strong>Besok (Kamis)</strong>: <strong>Cicos Bumbu Seblak</strong> pedas gurih! Ditunggu juga menu spesial Hari Jumat (Dessert Ubi Ungu, Piscok, Piscok Matcha & Cicos).
+                Spesial <strong>Besok (Kamis)</strong>: <strong>Cicos Bumbu Seblak</strong> pedas gurih! Ditunggu juga menu spesial Hari Jumat (Dessert Ubi Ungu, Piscok, Pisang Matcha & Cicos).
               </p>
 
               <div className="hero-buttons">
