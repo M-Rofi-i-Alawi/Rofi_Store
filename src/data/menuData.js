@@ -6,22 +6,41 @@ export const menuItems = [
     price: 5000,
     oldPrice: 7000,
     rating: 5.0,
-    badge: "Best Seller (5K)",
+    badge: "Menu Besok Kamis (5K)",
     badgeType: "promo",
     image: "/images/cicos.jpeg",
     desc: "Cicos (Cireng Aci Goreng) renyah kriuk dengan bumbu seblak pedas gurih yang bikin nagih! Camilan favorit anak sekolah yang pas di kantong."
+  }
+];
+
+export const fridayMenuItems = [
+  {
+    id: 1,
+    name: "Cicos Bumbu Seblak",
+    badge: "Hadir Hari Jumat",
+    image: "/images/cicos.jpeg",
+    desc: "Cicos renyah kriuk dengan balutan bumbu seblak gurih pedas nampol."
   },
   {
     id: 2,
     name: "Dessert Ubi Ungu Keju",
-    category: "makanan",
-    price: 3000,
-    oldPrice: 5000,
-    rating: 5.0,
-    badge: "Porsi Hemat (3K)",
-    badgeType: "promo",
+    badge: "Hadir Hari Jumat",
     image: "/images/dessert_ubi_ungu.png",
-    desc: "Dessert ubi ungu homemade lembut nan lumer di mulut dengan taburan keju parut gurih melimpah. Manis, creamy, dan bikin ketagihan!"
+    desc: "Dessert ubi ungu homemade lembut nan lumer dengan taburan keju gurih melimpah."
+  },
+  {
+    id: 3,
+    name: "Piscok (Pisang Cokelat Lumer)",
+    badge: "Hadir Hari Jumat",
+    image: "/images/piscok.jpeg",
+    desc: "Pisang berbalut kulit lumpia super renyah dengan isian cokelat lumer meleleh."
+  },
+  {
+    id: 4,
+    name: "Piscok Matcha",
+    badge: "Hadir Hari Jumat",
+    image: "/images/piscok matcha.jpeg",
+    desc: "Pisang cokelat renyah dengan aroma dan cita rasa manis green tea matcha yang khas."
   }
 ];
 

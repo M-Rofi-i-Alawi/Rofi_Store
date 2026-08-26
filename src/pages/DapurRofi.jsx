@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { menuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
+import { menuItems, fridayMenuItems, MERCHANT_WA_NUMBER } from '../data/menuData';
 import { useFocusMode } from '../context/FocusModeContext';
 import { supabase } from '../lib/supabase';
 import FAQSection from '../components/FAQSection';
@@ -121,7 +121,7 @@ export default function DapurRofi() {
               </h1>
 
               <p className="hero-subtitle">
-                Cicos bumbu seblak pedas gurih & Dessert ubi ungu keju lumer homemade. Diantar langsung saat jam istirahat atau pulang sekolah!
+                Spesial <strong>Besok (Kamis)</strong>: <strong>Cicos Bumbu Seblak</strong> pedas gurih! Ditunggu juga menu spesial Hari Jumat (Dessert Ubi Ungu, Piscok, Piscok Matcha & Cicos).
               </p>
 
               <div className="hero-buttons">
@@ -129,10 +129,10 @@ export default function DapurRofi() {
                   onClick={() => document.getElementById('menu').scrollIntoView({ behavior: 'smooth' })}
                   className="btn-hero-primary btn-hero-dapur"
                 >
-                  <i className="fas fa-utensils"></i> Pilih Menu (3K &amp; 5K)
+                  <i className="fas fa-utensils"></i> Pesan Cicos (5K)
                 </button>
                 <a
-                  href={`https://wa.me/${MERCHANT_WA_NUMBER}?text=Halo%20Dapur%20Rofi!%20Saya%20ingin%20memesan%20Dessert%20Ubi%20Ungu.`}
+                  href={`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent('Halo Dapur Rofi! Saya ingin bertanya tentang menu kuliner.')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-hero-primary"
@@ -158,95 +158,118 @@ export default function DapurRofi() {
       {/* =============== MENU CATALOG =============== */}
       <section id="menu" style={{ padding: '4rem 0' }}>
         <div className="app-container">
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          {/* Header Menu Kamis */}
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <span className="hero-badge" style={{ color: 'var(--dr-primary)', backgroundColor: 'var(--dr-primary-light)' }}>
-              <i className="fas fa-cookie-bite"></i> Menu &amp; Varian Dapur Rofi
+              <i className="fas fa-fire"></i> Menu Ready Besok Kamis
             </span>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--dark)', marginTop: '0.5rem' }}>
-              Menu <span className="dr-text">Dapur Rofi</span>
+            <h2 style={{ fontSize: '2.3rem', fontWeight: '900', color: 'var(--dark)', marginTop: '0.5rem' }}>
+              Menu Besok <span className="dr-text">(Hari Kamis)</span>
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-              Pilih menu favorit Anda! Siap antar di Smakzie LB.
+              Pesan dari sekarang untuk diantar besok Kamis saat jam istirahat atau pulang sekolah di Smakzie LB!
             </p>
           </div>
 
-          {/* Product Grid / Empty State */}
-          {menuItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1px dashed var(--border-color)', maxWidth: '600px', margin: '0 auto' }}>
-              <i className="fas fa-box-open" style={{ fontSize: '3.5rem', color: 'var(--dr-primary)', marginBottom: '1.25rem' }}></i>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--dark)', marginBottom: '0.5rem' }}>Belum Ada Produk Dapur Rofi</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                Semua produk Dapur Rofi saat ini belum tersedia atau sedang dalam pembaruan menu. Silakan periksa kembali nanti!
+          {/* Product Grid / Menu Kamis */}
+          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '600px', margin: '0 auto' }}>
+            {menuItems.map((item) => (
+              <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'relative', height: '260px' }}>
+                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
+                    {item.badge}
+                  </span>
+                  <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="fas fa-star"></i> {item.rating}
+                  </span>
+                </div>
+
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
+                      {item.name}
+                    </h3>
+                    <div>
+                      <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
+                        Rp {item.price.toLocaleString('id-ID')}
+                      </span>
+                      {item.oldPrice && (
+                        <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                          Rp {item.oldPrice.toLocaleString('id-ID')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.5rem', flexGrow: 1 }}>
+                    {item.desc}
+                  </p>
+
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="btn-hero-primary btn-hero-dapur"
+                    style={{ width: '100%', justifyContent: 'center', padding: '0.85rem 1.25rem', fontSize: '0.95rem' }}
+                  >
+                    <i className="fas fa-plus-circle"></i> Pesan Sekarang (Rp {item.price.toLocaleString('id-ID')})
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* =============== FRIDAY SPECIAL MENU TEASER / ANNOUNCEMENT =============== */}
+          <div style={{ marginTop: '5rem', paddingTop: '3rem', borderTop: '2px dashed var(--border-color)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <span className="hero-badge" style={{ color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0' }}>
+                <i className="fas fa-calendar-alt"></i> Siap Hadir Hari Jumat
+              </span>
+              <h2 style={{ fontSize: '2.2rem', fontWeight: '900', color: 'var(--dark)', marginTop: '0.5rem' }}>
+                Menu Spesial <span style={{ color: '#059669' }}>Hari Jumat</span>
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '650px', margin: '0.5rem auto 0' }}>
+                Berikut adalah daftar menu lezat yang bakal hadir dan dijual hari Jumat di Smakzie LB. Mau booking / tanya-tanya duluan? Chat langsung ke WhatsApp!
               </p>
             </div>
-          ) : (
-            <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-              {menuItems.map((item) => (
-                <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', height: '240px' }}>
+
+            <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', maxWidth: '1050px', margin: '0 auto' }}>
+              {fridayMenuItems.map((item) => (
+                <div key={item.id} className="card-box scale-hover" style={{ padding: 0, overflow: 'hidden', borderRadius: '20px', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                  <div style={{ position: 'relative', height: '200px' }}>
                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <span style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, var(--dr-primary), var(--dr-secondary))', color: '#FFF', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800' }}>
+                    <span style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, #059669, #10B981)', color: '#FFF', padding: '5px 12px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: '800' }}>
                       {item.badge}
-                    </span>
-                    <span style={{ position: 'absolute', top: '14px', right: '14px', backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#FF8F00', padding: '6px 12px', borderRadius: '999px', fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <i className="fas fa-star"></i> {item.rating}
                     </span>
                   </div>
 
-                  <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--dark)' }}>
-                        {item.name}
-                      </h3>
-                      <div>
-                        <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--dr-primary)' }}>
-                          Rp {item.price.toLocaleString('id-ID')}
-                        </span>
-                        {item.oldPrice && (
-                          <div style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                            Rp {item.oldPrice.toLocaleString('id-ID')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.6', marginBottom: '1.5rem', flexGrow: 1 }}>
+                  <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: 'var(--dark)', marginBottom: '0.4rem' }}>
+                      {item.name}
+                    </h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.825rem', lineHeight: '1.5', marginBottom: '1.25rem', flexGrow: 1 }}>
                       {item.desc}
                     </p>
 
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="btn-hero-primary btn-hero-dapur"
-                      style={{ width: '100%', justifyContent: 'center', padding: '0.85rem 1.25rem', fontSize: '0.95rem' }}
+                    <a
+                      href={`https://wa.me/${MERCHANT_WA_NUMBER}?text=${encodeURIComponent(`Halo Dapur Rofi! Saya tertarik dengan menu ${item.name} yang bakal hadir hari Jumat. Mau tanya info / booking porsi ya kang Rofi, terima kasih!`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-hero-primary"
+                      style={{
+                        width: '100%',
+                        justifyContent: 'center',
+                        padding: '0.7rem 1rem',
+                        fontSize: '0.85rem',
+                        backgroundColor: '#059669',
+                        textDecoration: 'none'
+                      }}
                     >
-                      <i className="fas fa-plus-circle"></i> Pesan Sekarang
-                    </button>
+                      <i className="fab fa-whatsapp"></i> Tanya / Booking Jumat
+                    </a>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-
-          {/* STAY TUNED BANNER FOR FUTURE PRODUCTS */}
-          <div
-            className="card-box"
-            style={{
-              maxWidth: '840px',
-              margin: '2.5rem auto 0',
-              padding: '1.75rem',
-              borderRadius: '24px',
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, rgba(230, 74, 25, 0.08) 0%, rgba(255, 143, 0, 0.12) 100%)',
-              border: '2px dashed var(--dr-primary)'
-            }}
-          >
-            <div style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>✨ 🎁 ✨</div>
-            <h4 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--dr-primary)', marginBottom: '0.5rem' }}>
-              Ditunggu Produk Selanjutnya!
-            </h4>
-            <p style={{ color: 'var(--dark)', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.6' }}>
-              Stay tuned terus untuk mendapatkan produk baru selanjutnya dari Dapur Rofi 💖
-            </p>
           </div>
         </div>
       </section>
